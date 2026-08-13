@@ -139,6 +139,7 @@ document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', (
   currentSessionId = null;
   render();
 }));
+document.body.appendChild(document.querySelector('.tabbar'));
 document.getElementById('quickAddBtn').addEventListener('click', () => {
   if (activeTab === 'bags') openBagForm();
   else if (activeTab === 'templates') openTemplateForm();
@@ -173,6 +174,7 @@ function renderDashboard() {
       <div class="card kpi"><span class="muted">Template-uri</span><strong>${templates}</strong></div>
       <div class="card kpi"><span class="muted">Sesiuni active</span><strong>${open}</strong></div>
     </div>
+    <div id="pushCard" class="card flat push-card" style="margin-top:14px"><div><h3>Notificări pe iPhone</h3><p class="muted">Se verifică statusul OneSignal…</p></div><button class="secondary" onclick="enablePushNotifications()">Activează</button></div>
     <div class="section-title"><h3>De încărcat</h3><span class="pill ${charging.every(g=>g.charged)?'ok':'warn'}">${charging.filter(g=>g.charged).length}/${charging.length}</span></div>
     <div class="list">${charging.map(gearItemRow).join('')||empty('Nu ai echipamente de încărcat.')}</div>
     <div class="section-title"><h3>Acțiuni rapide</h3></div>

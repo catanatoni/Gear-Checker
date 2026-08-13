@@ -493,6 +493,17 @@
       "status": "available",
       "notes": "",
       "needsCharge": false
+    },
+    {
+      "id": "x1vldkpwoxyg",
+      "name": "SD memory cards",
+      "category": "Storage",
+      "quantity": 6,
+      "bagId": "549w5flh4cdf",
+      "status": "available",
+      "notes": "Verifică backupul și formatează înainte de filmare",
+      "needsCharge": false,
+      "charged": false
     }
   ],
   "templates": [
@@ -886,6 +897,30 @@
     "antonioInventoryV3": true,
     "antonioChargingV4": true,
     "caseBasedTemplatesV5": true,
-    "opaqueCarCutoutsV7": true
+    "opaqueCarCutoutsV7": true,
+    "sessionPrepV8": true
+  },
+  "business": {
+    "projects": [],
+    "settings": {
+      "monthlyEur": 5000,
+      "reserveEur": 10000,
+      "eurRon": 5,
+      "weeks": 46,
+      "billableHours": 24,
+      "safety": 0.1,
+      "handling": 0.1,
+      "premium": 0.15,
+      "annualExpenses": 71600,
+      "taxIncome": 0.1,
+      "cas": 0.25,
+      "cass": 0.1,
+      "minSalary": 4050,
+      "vatThreshold": 395000,
+      "vatRate": 0.21,
+      "vatStatus": "Neplătitor TVA",
+      "advance": 0.5,
+      "costKm": 1.5
+    }
   }
 }
