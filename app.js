@@ -54,6 +54,7 @@ const seedData = () => {
   return { bags, gear, templates, sessions: [], settings: { firstRun: false } };
 };
 
+const hadStoredStateAtBoot = Boolean(localStorage.getItem(STORAGE_KEY));
 let state = load();
 migrateState();
 let activeTab = 'dashboard';
@@ -116,6 +117,7 @@ function migrateState() {
     state.settings.caseBasedTemplatesV5=true;save();
   }
   if(!state.settings.opaqueCarCutoutsV7){state.bags.forEach(b=>{if(b.name==='Mașină')b.type='CarCutoutOpaque.png';if(b.name==='Portbagaj')b.type='CarTrunkCutoutOpaque.png'});state.settings.opaqueCarCutoutsV7=true;save()}
+  if(!state.settings.sessionPrepV8){const medium=state.bags.find(b=>b.name==='Vevor Medium Case');if(medium&&!state.gear.some(g=>/memory cards|sd cards/i.test(g.name)))state.gear.push({id:uid(),name:'SD memory cards',category:'Storage',quantity:6,bagId:medium.id,status:'available',notes:'Verifică backupul și formatează înainte de filmare',needsCharge:false,charged:false});state.settings.sessionPrepV8=true;save()}
 }
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function byId(arr, id) { return arr.find(x => x.id === id); }
@@ -141,13 +143,14 @@ document.getElementById('quickAddBtn').addEventListener('click', () => {
   if (activeTab === 'bags') openBagForm();
   else if (activeTab === 'templates') openTemplateForm();
   else if (activeTab === 'sessions') openNewSession();
+  else if (activeTab === 'business') openBusinessProjectForm();
   else openGearForm();
 });
 document.getElementById('closeModalBtn').addEventListener('click', () => modal.close());
 
 function render() {
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
-  const map = { dashboard: renderDashboard, inventory: renderInventory, bags: renderBags, templates: renderTemplates, sessions: renderSessions };
+  const map = { dashboard: renderDashboard, inventory: renderInventory, bags: renderBags, templates: renderTemplates, sessions: renderSessions, business: renderBusiness };
   map[activeTab]();
 }
 
@@ -180,6 +183,7 @@ function renderDashboard() {
       <div class="footer-actions">
         <button class="ghost" onclick="exportBackup()">Export backup</button>
         <button class="ghost" onclick="importFile.click()">Import backup</button>
+        <button class="ghost" onclick="restoreAntonioBackup()">Restaurează presetul Toni</button>
       </div>
     </div>
     <div class="section-title"><h3>Ultimele sesiuni</h3><button class="ghost tiny" onclick="activeTab='sessions';render()">Vezi toate</button></div>
@@ -280,10 +284,11 @@ function renderSessionDetail(id) {
   view.innerHTML = `
     <button class="ghost tiny" onclick="currentSessionId=null;renderSessions()">‹ Înapoi</button>
     <section class="card stack" style="margin-top:10px">
-      <div class="row"><div><h2>${escapeHtml(s.name)}</h2><p class="muted">${escapeHtml(s.date)} · ${mode === 'charge'?'Verificare încărcare':mode === 'pack' ? 'Checklist plecare la filmare' : 'Checklist plecare acasă'}</p></div><span class="pill accent">${progress(items)}%</span></div>
+      <div class="row"><div><h2>${escapeHtml(s.name)}</h2><p class="muted">${escapeHtml(s.date)} · ${mode === 'charge'?'Baterii și carduri':mode === 'pack' ? 'Checklist plecare la filmare' : 'Checklist plecare acasă'}</p></div><span class="pill accent">${progress(items)}%</span></div>
       <div class="progress"><div style="width:${progress(items)}%"></div></div>
-      <div class="mode-tabs"><button class="${mode==='charge'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','charge')">Încărcare</button><button class="${mode==='pack'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','pack')">Spre filmare</button><button class="${mode==='return'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','return')">Plecare acasă</button></div>
+      <div class="mode-tabs"><button class="${mode==='charge'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','charge')">Pregătire</button><button class="${mode==='pack'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','pack')">Spre filmare</button><button class="${mode==='return'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','return')">Plecare acasă</button></div>
     </section>
+    <div class="card flat stack" style="margin-top:12px"><div class="row"><b>Notificări planificate</b><span class="pill">Push neconectat</span></div><p class="muted">${escapeHtml(s.reminderDate||'Cu o zi înainte')} la ${escapeHtml(s.reminderTime||'09:00')}: baterii și carduri.</p>${s.clothesReminder?`<p class="muted">Haine: cu o zi înainte la ${escapeHtml(s.clothesPrepTime||'09:05')} și în ziua evenimentului la ${escapeHtml(s.clothesMorningTime||'07:00')}.</p>`:''}</div>
     ${missing.length ? `<div class="section-title"><h3>Lipsesc / nebifate</h3><span class="pill warn">${missing.length}</span></div><div class="list">${missing.map(i => checklistRow(s.id, i, mode, true)).join('')}</div>` : `<div class="card flat" style="margin-top:14px"><p class="empty">Totul bifat. Frumos.</p></div>`}
     <div class="section-title"><h3>Toate itemele</h3></div>
     <div class="list">${items.map(i => checklistRow(s.id, i, mode)).join('')}</div>
@@ -405,16 +410,20 @@ function openNewSession() {
     <div class="form-grid">
       <label>Nume sesiune<input id="sName" value="Filmare ${today()}" /></label>
       <label>Data<input id="sDate" type="date" value="${today()}" /></label>
+      <label>Tip filmare<select id="sShootType"><option>Filmări generale</option><option>Corporate</option><option>Sport</option><option>Product</option><option>Event</option><option>Wedding / Botez</option></select></label>
+      <label>Notificare baterii + carduri, cu o zi înainte la<input id="sReminderTime" type="time" value="09:00" /></label>
+      <div id="clothesHint" class="card flat"><p class="muted">Pentru Event și Wedding se adaugă automat notificările separate pentru haine: 09:05 cu o zi înainte și 07:00 în ziua evenimentului.</p></div>
       <p class="muted" style="font-weight:800">Alege template</p>
-      <div class="list">${state.templates.map(t => {const ids=templateItemIds(t);return `<button type="button" class="secondary template-pick" onclick="createSession('${t.id}', document.getElementById('sName').value, document.getElementById('sDate').value)"><b>${escapeHtml(t.name)}</b><br><small class="muted">${ids.length} iteme · ⚡ ${ids.filter(id=>byId(state.gear,id)?.needsCharge).length} de încărcat · ${escapeHtml(t.notes || '')}</small></button>`}).join('')}</div>
+      <div class="list">${state.templates.map(t => {const ids=templateItemIds(t);return `<button type="button" class="secondary template-pick" onclick="createSession('${t.id}', document.getElementById('sName').value, document.getElementById('sDate').value,document.getElementById('sShootType').value,document.getElementById('sReminderTime').value)"><b>${escapeHtml(t.name)}</b><br><small class="muted">${ids.length} iteme · ⚡ ${ids.filter(id=>byId(state.gear,id)?.needsCharge).length} de încărcat · ${escapeHtml(t.notes || '')}</small></button>`}).join('')}</div>
     </div>`);
 }
-function createSession(templateId, name='', date='') {
+function createSession(templateId, name='', date='',shootType='Filmări generale',reminderTime='09:00') {
   const t = byId(state.templates, templateId);
   if (!t) return;
   const resolved=templateItemIds(t),makeItems = () => resolved.map(gearId => ({ id: uid(), gearId, checked: false }));
-  const chargeItems=resolved.filter(id=>byId(state.gear,id)?.needsCharge).map(gearId=>({id:uid(),gearId,checked:false}));
-  const session = { id: uid(), name: name?.trim() || t.name + ' · ' + today(), templateId, date: date || today(), mode: chargeItems.length?'charge':'pack', chargeItems, packItems: makeItems(), returnItems: makeItems(), completed: false };
+  const chargeItems=resolved.filter(id=>{const g=byId(state.gear,id);return g?.needsCharge||/memory cards|sd cards/i.test(g?.name||'')}).map(gearId=>({id:uid(),gearId,checked:false}));
+  const clothesReminder=/event|wedding|botez/i.test(shootType);
+  const session = { id: uid(), name: name?.trim() || t.name + ' · ' + today(), templateId, date: date || today(),shootType,reminderTime,reminderDate:'Cu o zi înainte',clothesReminder,clothesPrepTime:'09:05',clothesMorningTime:'07:00', mode: chargeItems.length?'charge':'pack', chargeItems, packItems: makeItems(), returnItems: makeItems(), completed: false };
   state.sessions.push(session);
   save(); modal.close(); activeTab = 'sessions'; currentSessionId = session.id; render();
 }
@@ -447,5 +456,28 @@ importFile.addEventListener('change', async e => {
   importFile.value = '';
 });
 
+async function loadAntonioBackup() {
+  const response = await fetch('./antonio-backup-2026-08-13.json', { cache: 'no-store' });
+  if (!response.ok) throw new Error('Preset indisponibil');
+  const data = await response.json();
+  if (!data.gear || !data.bags || !data.templates) throw new Error('Preset invalid');
+  return data;
+}
+async function restoreAntonioBackup() {
+  if (!confirm('Restaurezi inventarul Toni din 13 august? Datele locale actuale vor fi înlocuite.')) return;
+  try {
+    state = await loadAntonioBackup();
+    migrateState(); save(); render();
+    alert('Presetul Toni a fost restaurat: inventarul complet, 6 bagaje și 7 template-uri.');
+  } catch (err) { alert('Presetul Toni nu a putut fi încărcat.'); }
+}
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
-render();
+async function boot() {
+  if (!hadStoredStateAtBoot) {
+    try { state = await loadAntonioBackup(); migrateState(); save(); }
+    catch (err) { /* seedul intern rămâne fallback dacă fișierul nu este disponibil */ }
+  }
+  render();
+}
+boot();
