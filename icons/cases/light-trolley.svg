@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<title>Light Trolley</title><rect width="512" height="512" rx="112" fill="#0b1220"/>
+<rect x="126" y="124" width="260" height="260" rx="44" fill="#0f172a" stroke="#fbbf24" stroke-width="14"/>
+<path d="M178 96h156M334 96v52M178 96v52" stroke="#4b5563" stroke-width="16" stroke-linecap="round"/>
+<path d="M184 206h144M184 256h144M184 306h94" stroke="#fbbf24" stroke-width="16" stroke-linecap="round"/>
+<circle cx="178" cy="414" r="22" fill="#e5e7eb"/><circle cx="334" cy="414" r="22" fill="#e5e7eb"/>
+</svg>

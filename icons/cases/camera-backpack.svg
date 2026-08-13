@@ -1,0 +1,8 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<title>Camera Backpack</title><rect width="512" height="512" rx="112" fill="#0b1220"/>
+<path d="M154 126h204c26 0 48 22 48 48v212c0 30-24 54-54 54H160c-30 0-54-24-54-54V174c0-26 22-48 48-48Z" fill="#0f172a" stroke="#f59e0b" stroke-width="14"/>
+<path d="M158 126V92c0-20 16-36 36-36h124c20 0 36 16 36 36v34" stroke="#4b5563" stroke-width="16" stroke-linecap="round"/>
+<circle cx="256" cy="266" r="56" fill="#111827" stroke="#e5e7eb" stroke-width="12"/>
+<circle cx="256" cy="266" r="24" fill="#60a5fa"/>
+<path d="M148 198h216M148 350h216" stroke="#374151" stroke-width="12" stroke-linecap="round"/>
+</svg>

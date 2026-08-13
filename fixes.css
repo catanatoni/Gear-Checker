@@ -1,0 +1,3 @@
+.ring{background:radial-gradient(circle,#171b20 0 62%,transparent 63%),conic-gradient(var(--lime) var(--pct),#30343a 0)}
+.ring:after{display:none}
+.case-svg{display:block;width:52px;height:52px;object-fit:contain;border-radius:12px}.case-title .case-svg{width:62px;height:62px}.gear-icon .case-svg{width:100%;height:100%}

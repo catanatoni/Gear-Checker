@@ -1,49 +1,17 @@
 <!doctype html>
 <html lang="ro">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Gear Check</title>
-  <meta name="theme-color" content="#0f1115" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Gear Check" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#0b0d10"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Gear Check</title><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="fixes.css">
 </head>
 <body>
-  <div id="app" class="app-shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">CTN Visuals</p>
-        <h1 id="screenTitle">Gear Check</h1>
-      </div>
-      <button class="icon-button" id="quickAddBtn" aria-label="Adaugă rapid">＋</button>
-    </header>
-
-    <main id="view" class="view"></main>
-
-    <nav class="tabbar" aria-label="Navigație principală">
-      <button data-tab="dashboard" class="tab active"><span>⌂</span><small>Acasă</small></button>
-      <button data-tab="inventory" class="tab"><span>▦</span><small>Gear</small></button>
-      <button data-tab="bags" class="tab"><span>▣</span><small>Bagaje</small></button>
-      <button data-tab="templates" class="tab"><span>☑</span><small>Template</small></button>
-      <button data-tab="sessions" class="tab"><span>↺</span><small>Sesiuni</small></button>
-    </nav>
-  </div>
-
-  <dialog id="modal" class="modal">
-    <form method="dialog" class="modal-card" id="modalCard">
-      <div class="modal-head">
-        <h2 id="modalTitle">Adaugă</h2>
-        <button type="button" class="ghost tiny" id="closeModalBtn">Închide</button>
-      </div>
-      <div id="modalBody"></div>
-    </form>
-  </dialog>
-
-  <input type="file" id="importFile" accept="application/json,.json" hidden />
+  <header><div><small>ANTONIO'S KIT</small><h1>Gear Check</h1></div><button class="circle" id="settingsBtn" aria-label="Setări">•••</button></header>
+  <main>
+    <section id="dashboard" class="view active"><div class="hero"><div><small>PREGĂTIRE</small><h2 id="summary">0 din 0 pregătite</h2></div><div class="ring" id="ring">0%</div></div><h3>Case-uri & bagaje</h3><div id="caseGrid" class="case-grid"></div><button class="add" id="addCase">＋ Adaugă case / bagaj</button></section>
+    <section id="caseView" class="view"><button class="back" id="backBtn">‹ Toate case-urile</button><div id="caseHead"></div><div class="segmented"><button data-filter="all" class="selected">Tot</button><button data-filter="in">IN</button><button data-filter="out">OUT</button></div><div id="gearList"></div><button class="add" id="addGear">＋ Adaugă echipament</button></section>
+    <section id="settings" class="view"><button class="back" id="settingsBack">‹ Înapoi</button><h2>Setări & backup</h2><div class="panel"><button id="exportBtn">Exportă backup JSON</button><label class="fileBtn">Importă backup<input id="importFile" type="file" accept="application/json"></label><button id="resetChecks">Resetează toate check-urile</button></div><p class="hint">Datele și pozele rămân pe acest dispozitiv. Fă un export înainte de actualizări importante.</p></section>
+  </main>
+  <dialog id="editor"><form method="dialog" id="editForm"><div class="modalHead"><h2 id="editorTitle">Editează</h2><button value="cancel" class="circle">×</button></div><input type="hidden" id="editType"><input type="hidden" id="editId"><label>Nume<input id="editName" required maxlength="80"></label><label id="categoryLabel">Categorie<input id="editCategory" maxlength="40" placeholder="Cameră, Audio…"></label><label>Iconiță<select id="editIcon"><option>🧳</option><option>🛡️</option><option>🎙️</option><option>🎒</option><option>📦</option><option>🎥</option><option>📷</option><option>🔊</option><option>🔋</option><option>💡</option><option>🔌</option><option>🧰</option></select></label><label class="checkline" id="activeLabel"><input id="editActive" type="checkbox"> Case activ / folosit</label><label>Notițe<textarea id="editNotes" rows="3"></textarea></label><label>Fotografie<input id="editPhoto" type="file" accept="image/*" capture="environment"></label><img id="photoPreview" class="preview" hidden><div class="actions"><button type="button" class="danger" id="deleteBtn">Șterge</button><button value="save" class="primary">Salvează</button></div></form></dialog>
   <script src="app.js"></script>
-</body>
-</html>
+</body></html>

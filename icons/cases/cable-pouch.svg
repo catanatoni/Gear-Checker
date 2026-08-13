@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<title>Cable Pouch</title><rect width="512" height="512" rx="112" fill="#0b1220"/>
+<rect x="110" y="156" width="292" height="236" rx="48" fill="#0f172a" stroke="#a78bfa" stroke-width="14"/>
+<path d="M168 238c20-38 82-38 102 0s82 38 102 0" stroke="#a78bfa" stroke-width="18" stroke-linecap="round"/>
+<path d="M170 306h172" stroke="#e5e7eb" stroke-width="14" stroke-linecap="round"/>
+<circle cx="184" cy="306" r="28" fill="#111827" stroke="#a78bfa" stroke-width="10"/>
+</svg>

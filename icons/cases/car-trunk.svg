@@ -1,0 +1,7 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<title>Car Trunk</title><rect width="512" height="512" rx="112" fill="#0b1220"/>
+<path d="M100 246l54-86h204l54 86v92H100v-92Z" fill="#0f172a" stroke="#38bdf8" stroke-width="14" stroke-linejoin="round"/>
+<path d="M160 246h192" stroke="#38bdf8" stroke-width="14" stroke-linecap="round"/>
+<circle cx="166" cy="356" r="24" fill="#e5e7eb"/><circle cx="346" cy="356" r="24" fill="#e5e7eb"/>
+<path d="M202 164h108" stroke="#475569" stroke-width="14" stroke-linecap="round"/>
+</svg>
