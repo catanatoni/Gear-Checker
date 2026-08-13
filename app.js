@@ -75,17 +75,17 @@ function migrateState() {
       ['Vevor Medium Case','VevorMediumStyled-Balanced.png','Rig principal, camere, obiective și power'],
       ['Vevor Large Case','VevorLargeStyled.png','Gimbal, lumini și efecte'],
       ['Small Audio Case','VevorSmallStyled.png','Recorder, microfoane și consumabile audio'],
-      ['Mașină','Car.png','Transport gear'],['Portbagaj','CarTrunk.png','Echipament transportat separat']
+      ['Mașină','Car-transparent.png','Transport gear'],['Portbagaj','CarTrunk-transparent.png','Echipament transportat separat']
     ];
     const oldBags=state.bags||[], bags=specs.map(([name,type,notes])=>{const old=oldBags.find(b=>b.name===name);return{id:old?.id||uid(),name,type,notes}});
     const bid=name=>bags.find(b=>b.name===name).id;
     const rows=[
       ['Sony FX3','Camera',1,'Vevor Medium Case',0],['Sony A7S III','Camera',1,'Vevor Medium Case',0],
       ['Laowa 10mm','Obiective',1,'Vevor Medium Case',0],['Sony Zeiss 50mm f/1.4','Obiective',1,'Vevor Medium Case',0],['Sigma 85mm Art','Obiective',1,'Vevor Medium Case',0],['Sony 24-70mm GM II','Obiective',1,'Vevor Medium Case',0],['Tamron 35-150mm','Obiective',1,'Vevor Medium Case',0],
-      ['SmallRig VB99 Pro V-Mount','Power',2,'Vevor Medium Case',1],['Sony NP-FZ100 batteries','Power',6,'Vevor Medium Case',1],['Sony battery chargers','Power',2,'Vevor Medium Case',0],['External battery / power bank','Power',1,'Vevor Medium Case',1],['Nitecore blower','Accesorii',1,'Vevor Medium Case',1],['Cabluri rig / cameră','Cabluri',1,'Vevor Medium Case',0],
+      ['SmallRig VB99 Pro V-Mount','Power',2,'Vevor Medium Case',1],['Sony NP-FZ100 batteries','Power',6,'Vevor Medium Case',1],['Sony battery chargers','Power',2,'Vevor Medium Case',0],['Nitecore power bank','Power',1,'Vevor Medium Case',1],['Nitecore blower','Accesorii',1,'Vevor Medium Case',1],['Cabluri rig / cameră','Cabluri',1,'Vevor Medium Case',0],
       ['SmallRig articulating arm','Rig',1,'Vevor Medium Case',0],['SmallRig top handle','Rig',1,'Vevor Medium Case',0],['SmallRig side handles','Rig',2,'Vevor Medium Case',0],['DJI RS4 Pro','Gimbal',1,'Vevor Medium Case',1],['Atomos Ninja V','Monitor',1,'Vevor Medium Case',0],['NP-F batteries','Power',2,'Vevor Medium Case',1],
       ['DJI RS3','Gimbal',1,'Vevor Large Case',1],['SmallRig rechargeable flashlight + spotlight attachment','Light',1,'Vevor Large Case',1],['Ulanzi smoke machine','FX',1,'Vevor Large Case',1],['Tamron 17-28mm','Obiective',1,'Vevor Large Case',0],['SmallRig RC 60B lights','Light',2,'Vevor Large Case',1],['SmallRig RC 60B light attachments','Light modifiers',1,'Vevor Large Case',0],
-      ['Zoom H5 recorder','Audio',1,'Small Audio Case',1],['Audio-Technica microphone','Audio',1,'Small Audio Case',0],['Zoom H2 lavalier','Audio',1,'Small Audio Case',1],['PicoGear PicoMic 2','Audio',1,'Small Audio Case',1],['AA batteries','Baterii',1,'Small Audio Case',0],['AAA batteries','Baterii',1,'Small Audio Case',0],['Audio cables','Cabluri',1,'Small Audio Case',0],
+      ['Zoom H5 recorder','Audio',1,'Small Audio Case',0],['Audio-Technica microphone','Audio',1,'Small Audio Case',0],['Zoom H2 lavalier','Audio',1,'Small Audio Case',0],['PicoGear PicoMic 2','Audio',1,'Small Audio Case',1],['AA batteries','Baterii',1,'Small Audio Case',0],['AAA batteries','Baterii',1,'Small Audio Case',0],['Audio cables','Cabluri',1,'Small Audio Case',0],
       ['Nanlite PavoTube 15X','Light',2,'Portbagaj',1],['Yongnuo IV lamps','Light',2,'Portbagaj',0],['MixPad 150','Light',1,'Portbagaj',0],['Nanlite Forza 300','Light',1,'Portbagaj',0]
     ];
     const oldGear=state.gear||[]; state.bags=bags; state.gear=rows.map(([name,category,quantity,bag,charge])=>{const old=oldGear.find(g=>g.name===name);return{id:old?.id||uid(),name,category,quantity,bagId:bid(bag),status:old?.status||'available',notes:old?.notes||'',needsCharge:!!charge,charged:old?.charged||false}});
@@ -101,12 +101,18 @@ function migrateState() {
     ];
     state.settings.antonioInventoryV3=true; save();
   }
+  if (!state.settings.antonioChargingV4) {
+    const rename={'External battery / power bank':'Nitecore power bank'};
+    state.gear.forEach(g=>{if(rename[g.name])g.name=rename[g.name];if(['Zoom H5 recorder','Zoom H2 lavalier'].includes(g.name)){g.needsCharge=false;g.charged=false}});
+    state.bags.forEach(b=>{if(b.name==='Mașină')b.type='Car-transparent.png';if(b.name==='Portbagaj')b.type='CarTrunk-transparent.png'});
+    state.settings.antonioChargingV4=true;save();
+  }
 }
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function byId(arr, id) { return arr.find(x => x.id === id); }
 function bagName(id) { return byId(state.bags, id)?.name || 'Fără bagaj'; }
 function escapeHtml(str='') { return String(str).replace(/[&<>'"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s])); }
-const BAG_ICONS = ['VevorMediumStyled.png','VevorMediumStyled-Balanced.png','VevorMediumStyled-TOOFlatter.png','VevorSmallStyled.png','VevorLargeStyled.png','ManfrottoRollerStyled.png','CameraShoulderBag.png','HardcaseCompact.png','HardcaseMedium.png','HardcaseLarge.png','HardcaseLong.png','HardcaseLens.png','HardcaseBattery.png','Car.png','CarTrunk.png'];
+const BAG_ICONS = ['VevorMediumStyled.png','VevorMediumStyled-Balanced.png','VevorMediumStyled-TOOFlatter.png','VevorSmallStyled.png','VevorLargeStyled.png','ManfrottoRollerStyled.png','CameraShoulderBag.png','HardcaseCompact.png','HardcaseMedium.png','HardcaseLarge.png','HardcaseLong.png','HardcaseLens.png','HardcaseBattery.png','Car-transparent.png','CarTrunk-transparent.png'];
 const bagIcon = type => BAG_ICONS.includes(type) ? `icons/cases/${type}` : ({backpack:'icons/cases/CameraShoulderBag.png',trolley:'icons/cases/ManfrottoRollerStyled.png',audio:'icons/cases/VevorSmallStyled.png',pouch:'icons/cases/HardcaseCompact.png',case:'icons/cases/HardcaseMedium.png',car:'icons/cases/HardcaseLong.png'}[type] || 'icons/cases/HardcaseMedium.png');
 
 const view = document.getElementById('view');
@@ -141,6 +147,7 @@ function renderDashboard() {
   const bags = state.bags.length;
   const templates = state.templates.length;
   const open = state.sessions.filter(s => !s.completed).length;
+  const charging=state.gear.filter(g=>g.needsCharge);
   view.innerHTML = `
     <section class="hero stack">
       <h2>Nu mai pleci fără cabluri, baterii sau carduri.</h2>
@@ -153,6 +160,8 @@ function renderDashboard() {
       <div class="card kpi"><span class="muted">Template-uri</span><strong>${templates}</strong></div>
       <div class="card kpi"><span class="muted">Sesiuni active</span><strong>${open}</strong></div>
     </div>
+    <div class="section-title"><h3>De încărcat</h3><span class="pill ${charging.every(g=>g.charged)?'ok':'warn'}">${charging.filter(g=>g.charged).length}/${charging.length}</span></div>
+    <div class="list">${charging.map(gearItemRow).join('')||empty('Nu ai echipamente de încărcat.')}</div>
     <div class="section-title"><h3>Acțiuni rapide</h3></div>
     <div class="grid">
       <button class="secondary" onclick="openGearForm()">Adaugă echipament</button>
@@ -204,19 +213,21 @@ function renderBags() {
       const count = state.gear.filter(g => g.bagId === b.id).length;
       return `<div class="card stack bag-card"><img class="bag-visual" src="${bagIcon(b.type)}" alt="" />
         <div class="row"><div><h2>${escapeHtml(b.name)}</h2><p class="muted">${escapeHtml(b.notes || b.type || '')}</p></div><span class="pill accent">${count} iteme</span></div>
-        <div class="list">${state.gear.filter(g => g.bagId === b.id).slice(0,4).map(g => `<div class="item"><div><div class="item-title">${escapeHtml(g.name)}</div><div class="item-sub">${escapeHtml(g.category)}</div></div></div>`).join('') || '<p class="empty">Gol momentan.</p>'}</div>
+        <div class="list">${state.gear.filter(g => g.bagId === b.id).map(g => `<div class="item"><div class="item-left"><div class="item-title">${escapeHtml(g.name)}</div><div class="item-sub">${escapeHtml(g.category)}</div></div><button class="unbag" onclick="removeFromBag('${g.id}')">Scoate</button></div>`).join('') || '<p class="empty">Gol momentan.</p>'}</div>
         <div class="footer-actions"><button class="ghost" onclick="openBagForm('${b.id}')">Editează</button><button class="danger" onclick="deleteBag('${b.id}')">Șterge</button></div>
       </div>`;
     }).join('') || empty('Nu ai bagaje definite.')}</div>`;
 }
+function removeFromBag(id){const g=byId(state.gear,id);if(g){g.bagId='';save();render()}}
 
 function renderTemplates() {
   title.textContent = 'Templates';
   view.innerHTML = `
     <div class="row"><span class="pill">${state.templates.length} template-uri</span><button class="primary tiny" onclick="openTemplateForm()">＋ Template</button></div>
     <div class="grid" style="margin-top:12px">${state.templates.map(t => {
+      const chargeCount=t.itemIds.filter(id=>byId(state.gear,id)?.needsCharge).length;
       return `<div class="card stack">
-        <div class="row"><div><h2>${escapeHtml(t.name)}</h2><p class="muted">${escapeHtml(t.notes || '')}</p></div><span class="pill accent">${t.itemIds.length} iteme</span></div>
+        <div class="row"><div><h2>${escapeHtml(t.name)}</h2><p class="muted">${escapeHtml(t.notes || '')}</p></div><span class="pill accent">${t.itemIds.length} iteme</span></div><p class="charge-note">⚡ ${chargeCount} de verificat la încărcare</p>
         <button class="primary" onclick="createSession('${t.id}')">Pornește checklist</button>
         <div class="footer-actions"><button class="ghost" onclick="openTemplateForm('${t.id}')">Editează</button><button class="danger" onclick="deleteTemplate('${t.id}')">Șterge</button></div>
       </div>`;
@@ -253,14 +264,15 @@ function renderSessionDetail(id) {
   title.textContent = s.name;
   const packPct = progress(s.packItems), returnPct = progress(s.returnItems);
   const mode = s.mode || 'pack';
-  const items = mode === 'pack' ? s.packItems : s.returnItems;
+  s.chargeItems ||= s.packItems.filter(ci=>byId(state.gear,ci.gearId)?.needsCharge).map(ci=>({id:uid(),gearId:ci.gearId,checked:false}));
+  const items = mode === 'charge' ? s.chargeItems : mode === 'pack' ? s.packItems : s.returnItems;
   const missing = items.filter(i => !i.checked);
   view.innerHTML = `
     <button class="ghost tiny" onclick="currentSessionId=null;renderSessions()">‹ Înapoi</button>
     <section class="card stack" style="margin-top:10px">
-      <div class="row"><div><h2>${escapeHtml(s.name)}</h2><p class="muted">${escapeHtml(s.date)} · ${mode === 'pack' ? 'Checklist plecare' : 'Checklist întoarcere'}</p></div><span class="pill accent">${mode === 'pack' ? packPct : returnPct}%</span></div>
-      <div class="progress"><div style="width:${mode === 'pack' ? packPct : returnPct}%"></div></div>
-      <div class="footer-actions"><button class="${mode==='pack'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','pack')">Plecare</button><button class="${mode==='return'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','return')">Întoarcere</button></div>
+      <div class="row"><div><h2>${escapeHtml(s.name)}</h2><p class="muted">${escapeHtml(s.date)} · ${mode === 'charge'?'Verificare încărcare':mode === 'pack' ? 'Checklist plecare la filmare' : 'Checklist plecare acasă'}</p></div><span class="pill accent">${progress(items)}%</span></div>
+      <div class="progress"><div style="width:${progress(items)}%"></div></div>
+      <div class="mode-tabs"><button class="${mode==='charge'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','charge')">Încărcare</button><button class="${mode==='pack'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','pack')">Spre filmare</button><button class="${mode==='return'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','return')">Plecare acasă</button></div>
     </section>
     ${missing.length ? `<div class="section-title"><h3>Lipsesc / nebifate</h3><span class="pill warn">${missing.length}</span></div><div class="list">${missing.map(i => checklistRow(s.id, i, mode, true)).join('')}</div>` : `<div class="card flat" style="margin-top:14px"><p class="empty">Totul bifat. Frumos.</p></div>`}
     <div class="section-title"><h3>Toate itemele</h3></div>
@@ -326,9 +338,11 @@ function openBagForm(id='') {
       <label>Nume<input id="bName" value="${escapeHtml(bag.name)}" placeholder="Rucsac cameră" /></label>
       <label>Iconiță<select id="bType">${BAG_ICONS.map(icon => `<option value="${icon}" ${bag.type===icon?'selected':''}>${icon.replace('.png','')}</option>`).join('')}</select></label>
       <label>Notițe<textarea id="bNotes">${escapeHtml(bag.notes || '')}</textarea></label>
+      ${id?`<div><p class="muted" style="font-weight:800;margin-bottom:8px">Conținut</p><div class="list">${state.gear.filter(g=>g.bagId===id).map(g=>`<div class="item"><span>${escapeHtml(g.name)}</span><button type="button" class="unbag" onclick="removeFromBagModal('${g.id}','${id}')">Scoate</button></div>`).join('')||'<p class="empty">Gol momentan.</p>'}</div></div>`:''}
       <button class="primary" type="button" onclick="saveBag('${id}')">Salvează</button>
     </div>`);
 }
+function removeFromBagModal(gearId,bagId){const g=byId(state.gear,gearId);if(g){g.bagId='';save();openBagForm(bagId)}}
 function saveBag(id='') {
   const payload = { name: bName.value.trim(), type: bType.value.trim(), notes: bNotes.value.trim() };
   if (!payload.name) return alert('Pune un nume.');
@@ -370,24 +384,25 @@ function openNewSession() {
       <label>Nume sesiune<input id="sName" value="Filmare ${today()}" /></label>
       <label>Data<input id="sDate" type="date" value="${today()}" /></label>
       <p class="muted" style="font-weight:800">Alege template</p>
-      <div class="list">${state.templates.map(t => `<button type="button" class="secondary template-pick" onclick="createSession('${t.id}', sName.value, sDate.value)"><b>${escapeHtml(t.name)}</b><br><small class="muted">${t.itemIds.length} iteme · ${escapeHtml(t.notes || '')}</small></button>`).join('')}</div>
+      <div class="list">${state.templates.map(t => `<button type="button" class="secondary template-pick" onclick="createSession('${t.id}', sName.value, sDate.value)"><b>${escapeHtml(t.name)}</b><br><small class="muted">${t.itemIds.length} iteme · ⚡ ${t.itemIds.filter(id=>byId(state.gear,id)?.needsCharge).length} de încărcat · ${escapeHtml(t.notes || '')}</small></button>`).join('')}</div>
     </div>`);
 }
 function createSession(templateId, name='', date='') {
   const t = byId(state.templates, templateId);
   if (!t) return;
   const makeItems = () => t.itemIds.map(gearId => ({ id: uid(), gearId, checked: false }));
-  const session = { id: uid(), name: name?.trim() || t.name + ' · ' + today(), templateId, date: date || today(), mode: 'pack', packItems: makeItems(), returnItems: makeItems(), completed: false };
+  const chargeItems=t.itemIds.filter(id=>byId(state.gear,id)?.needsCharge).map(gearId=>({id:uid(),gearId,checked:false}));
+  const session = { id: uid(), name: name?.trim() || t.name + ' · ' + today(), templateId, date: date || today(), mode: chargeItems.length?'charge':'pack', chargeItems, packItems: makeItems(), returnItems: makeItems(), completed: false };
   state.sessions.push(session);
   save(); modal.close(); activeTab = 'sessions'; currentSessionId = session.id; render();
 }
 function setSessionMode(id, mode) { byId(state.sessions, id).mode = mode; save(); render(); }
 function toggleChecklist(sessionId, itemId, mode) {
-  const s = byId(state.sessions, sessionId); const arr = mode === 'return' ? s.returnItems : s.packItems; const item = arr.find(i => i.id === itemId);
+  const s = byId(state.sessions, sessionId); const arr = mode === 'charge' ? s.chargeItems : mode === 'return' ? s.returnItems : s.packItems; const item = arr.find(i => i.id === itemId);
   item.checked = !item.checked; save(); render();
 }
 function toggleAll(sessionId, mode, checked) {
-  const s = byId(state.sessions, sessionId); const arr = mode === 'return' ? s.returnItems : s.packItems;
+  const s = byId(state.sessions, sessionId); const arr = mode === 'charge' ? s.chargeItems : mode === 'return' ? s.returnItems : s.packItems;
   arr.forEach(i => i.checked = checked); save(); render();
 }
 function completeSession(id) { byId(state.sessions, id).completed = true; save(); render(); }
