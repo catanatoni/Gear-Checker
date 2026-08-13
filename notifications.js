@@ -1,6 +1,10 @@
 const ONESIGNAL_APP_ID = '235c0b1a-654b-4ba4-b23b-dca951f21105';
 let oneSignalClient = null;
 
+async function clearGearBadge(){try{if('clearAppBadge' in navigator)await navigator.clearAppBadge()}catch(e){}}
+clearGearBadge();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')clearGearBadge()});
+
 function pushStatusLabel() {
   if (!oneSignalClient) return localStorage.getItem('gear-check-push-enabled') === '1' ? 'Push activ' : 'Se verifică…';
   return oneSignalClient.Notifications.permission && oneSignalClient.User.PushSubscription.optedIn ? 'Push activ' : 'Push inactiv';

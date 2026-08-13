@@ -277,6 +277,7 @@ function sessionList(sessions) {
 function renderSessionDetail(id) {
   const s = byId(state.sessions, id);
   if (!s) { currentSessionId = null; return renderSessions(); }
+  normalizeSessionCases(s);
   title.textContent = s.name;
   const packPct = progress(s.packItems), returnPct = progress(s.returnItems);
   const mode = s.mode || 'pack';
@@ -300,6 +301,7 @@ function renderSessionDetail(id) {
 }
 
 function checklistRow(sessionId, ci, mode, compact=false) {
+  if(ci.bagId){const bag=byId(state.bags,ci.bagId);if(!bag)return'';const count=state.gear.filter(g=>g.bagId===bag.id).length;return `<div class="item session-case-row" onclick="toggleChecklist('${sessionId}','${ci.id}','${mode}')"><div class="io-switch ${ci.checked?'checked':''}"><span>${ci.checked?'I':'O'}</span></div><img src="${bagIcon(bag.type)}" alt=""/><div class="item-left"><div class="item-title">${escapeHtml(bag.name)}</div><div class="item-sub">Cutie completă · ${count} iteme în interior</div></div></div>`}
   const item = byId(state.gear, ci.gearId);
   if (!item) return '';
   return `<div class="item" onclick="toggleChecklist('${sessionId}','${ci.id}','${mode}')">
@@ -311,6 +313,17 @@ function checklistRow(sessionId, ci, mode, compact=false) {
 function progress(items) {
   if (!items || !items.length) return 0;
   return Math.round(items.filter(i => i.checked).length / items.length * 100);
+}
+function packingItemsForTemplate(t){
+  const bags=(t?.bagIds||[]).map(bagId=>({id:uid(),bagId,checked:false}));
+  const extras=(t?.extraItemIds||t?.itemIds||[]).filter(gearId=>byId(state.gear,gearId)&&!bags.some(x=>byId(state.gear,gearId)?.bagId===x.bagId)).map(gearId=>({id:uid(),gearId,checked:false}));
+  return [...bags,...extras];
+}
+function normalizeSessionCases(s){
+  const t=byId(state.templates,s.templateId);if(!t||(s.packItems||[]).some(i=>i.bagId)||!(t.bagIds||[]).length)return;
+  const packChecked=new Map((s.packItems||[]).map(i=>[i.gearId,i.checked])),returnChecked=new Map((s.returnItems||[]).map(i=>[i.gearId,i.checked]));
+  s.packItems=packingItemsForTemplate(t).map(i=>({...i,checked:i.bagId?state.gear.filter(g=>g.bagId===i.bagId).every(g=>packChecked.get(g.id)):Boolean(packChecked.get(i.gearId))}));
+  s.returnItems=packingItemsForTemplate(t).map(i=>({...i,checked:i.bagId?state.gear.filter(g=>g.bagId===i.bagId).every(g=>returnChecked.get(g.id)):Boolean(returnChecked.get(i.gearId))}));save()
 }
 function empty(text) { return `<div class="card flat"><p class="empty">${escapeHtml(text)}</p></div>`; }
 
@@ -422,7 +435,7 @@ function openNewSession() {
 function createSession(templateId, name='', date='',shootType='Filmări generale',reminderTime='09:00') {
   const t = byId(state.templates, templateId);
   if (!t) return;
-  const resolved=templateItemIds(t),makeItems = () => resolved.map(gearId => ({ id: uid(), gearId, checked: false }));
+  const resolved=templateItemIds(t),makeItems = () => packingItemsForTemplate(t);
   const chargeItems=resolved.filter(id=>{const g=byId(state.gear,id);return g?.needsCharge||/memory cards|sd cards/i.test(g?.name||'')}).map(gearId=>({id:uid(),gearId,checked:false}));
   const clothesReminder=/event|wedding|botez/i.test(shootType);
   const session = { id: uid(), name: name?.trim() || t.name + ' · ' + today(), templateId, date: date || today(),shootType,reminderTime,reminderDate:'Cu o zi înainte',clothesReminder,clothesPrepTime:'09:05',clothesMorningTime:'07:00', mode: chargeItems.length?'charge':'pack', chargeItems, packItems: makeItems(), returnItems: makeItems(), completed: false };
