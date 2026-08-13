@@ -87,4 +87,6 @@ label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; font-weig
 .charge-toggle{border:0;border-radius:999px;padding:8px 10px;background:rgba(255,209,102,.16);color:var(--warn);font-size:11px;font-weight:850;white-space:nowrap}.charge-toggle.done{background:rgba(69,212,131,.18);color:var(--ok)}.charge-check{display:flex;grid-template-columns:auto 1fr;align-items:center;gap:10px}.charge-check input{width:24px;height:24px}
 .unbag{border:0;border-radius:10px;padding:7px 9px;background:rgba(255,90,101,.14);color:#ffadb4;font-size:11px;font-weight:800}.mode-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.mode-tabs button{min-height:42px;padding:8px 5px;font-size:11px}
 .charge-note{color:var(--warn);font-size:12px;font-weight:800}
+.template-label{margin:8px 0 3px;font-weight:900;color:var(--text)}.template-help{font-size:12px;color:var(--muted);margin-bottom:9px}.template-choice{display:grid;grid-template-columns:auto auto 1fr;justify-content:start}.template-choice input{width:24px;height:24px}.template-choice img{width:44px;height:44px;object-fit:contain}
+.template-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.template-scroll{max-height:310px;overflow:auto}
 @media (min-width: 720px) { .app-shell { max-width: 680px; margin: 0 auto; } }

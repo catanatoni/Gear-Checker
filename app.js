@@ -107,10 +107,19 @@ function migrateState() {
     state.bags.forEach(b=>{if(b.name==='Mașină')b.type='Car-transparent.png';if(b.name==='Portbagaj')b.type='CarTrunk-transparent.png'});
     state.settings.antonioChargingV4=true;save();
   }
+  if (!state.settings.caseBasedTemplatesV5) {
+    const caseNames=['Vevor Medium Case','Vevor Large Case','Small Audio Case'];
+    state.templates.forEach(t=>{
+      t.bagIds=caseNames.map(n=>state.bags.find(b=>b.name===n)).filter(b=>b&&state.gear.filter(g=>g.bagId===b.id).every(g=>t.itemIds.includes(g.id))).map(b=>b.id);
+      t.extraItemIds=t.itemIds.filter(id=>!t.bagIds.includes(byId(state.gear,id)?.bagId));
+    });
+    state.settings.caseBasedTemplatesV5=true;save();
+  }
 }
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function byId(arr, id) { return arr.find(x => x.id === id); }
 function bagName(id) { return byId(state.bags, id)?.name || 'Fără bagaj'; }
+function templateItemIds(t){return[...new Set([...(t.bagIds||[]).flatMap(bid=>state.gear.filter(g=>g.bagId===bid).map(g=>g.id)),...(t.extraItemIds||t.itemIds||[])])].filter(id=>byId(state.gear,id))}
 function escapeHtml(str='') { return String(str).replace(/[&<>'"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s])); }
 const BAG_ICONS = ['VevorMediumStyled.png','VevorMediumStyled-Balanced.png','VevorMediumStyled-TOOFlatter.png','VevorSmallStyled.png','VevorLargeStyled.png','ManfrottoRollerStyled.png','CameraShoulderBag.png','HardcaseCompact.png','HardcaseMedium.png','HardcaseLarge.png','HardcaseLong.png','HardcaseLens.png','HardcaseBattery.png','Car-transparent.png','CarTrunk-transparent.png'];
 const bagIcon = type => BAG_ICONS.includes(type) ? `icons/cases/${type}` : ({backpack:'icons/cases/CameraShoulderBag.png',trolley:'icons/cases/ManfrottoRollerStyled.png',audio:'icons/cases/VevorSmallStyled.png',pouch:'icons/cases/HardcaseCompact.png',case:'icons/cases/HardcaseMedium.png',car:'icons/cases/HardcaseLong.png'}[type] || 'icons/cases/HardcaseMedium.png');
@@ -225,9 +234,9 @@ function renderTemplates() {
   view.innerHTML = `
     <div class="row"><span class="pill">${state.templates.length} template-uri</span><button class="primary tiny" onclick="openTemplateForm()">＋ Template</button></div>
     <div class="grid" style="margin-top:12px">${state.templates.map(t => {
-      const chargeCount=t.itemIds.filter(id=>byId(state.gear,id)?.needsCharge).length;
+      const resolved=templateItemIds(t),chargeCount=resolved.filter(id=>byId(state.gear,id)?.needsCharge).length;
       return `<div class="card stack">
-        <div class="row"><div><h2>${escapeHtml(t.name)}</h2><p class="muted">${escapeHtml(t.notes || '')}</p></div><span class="pill accent">${t.itemIds.length} iteme</span></div><p class="charge-note">⚡ ${chargeCount} de verificat la încărcare</p>
+        <div class="row"><div><h2>${escapeHtml(t.name)}</h2><p class="muted">${escapeHtml(t.notes || '')}</p></div><span class="pill accent">${resolved.length} iteme</span></div><p class="charge-note">⚡ ${chargeCount} de verificat la încărcare</p>
         <button class="primary" onclick="createSession('${t.id}')">Pornește checklist</button>
         <div class="footer-actions"><button class="ghost" onclick="openTemplateForm('${t.id}')">Editează</button><button class="danger" onclick="deleteTemplate('${t.id}')">Șterge</button></div>
       </div>`;
@@ -357,17 +366,27 @@ function deleteBag(id) {
 }
 
 function openTemplateForm(id='') {
-  const t = byId(state.templates, id) || { name:'', notes:'', itemIds:[] };
+  const t = byId(state.templates, id) || { name:'', notes:'', itemIds:[],bagIds:[],extraItemIds:[] };
+  const caseNames=['Vevor Medium Case','Vevor Large Case','Small Audio Case'],caseBags=state.bags.filter(b=>caseNames.includes(b.name));
+  const loose=state.gear.filter(g=>!caseBags.some(b=>b.id===g.bagId));
+  const production=loose.filter(g=>/light|stativ|stand|nanlite|yongnuo|forza|mixpad|gvm/i.test(`${g.category} ${g.name}`)),otherLoose=loose.filter(g=>!production.includes(g));
+  const choices=items=>items.map(g => `<label class="item template-choice"><input type="checkbox" class="tGear" value="${g.id}" ${(t.extraItemIds||[]).includes(g.id)?'checked':''}/><span><b>${escapeHtml(g.name)} ${g.quantity>1?`×${g.quantity}`:''}</b><br><small class="muted">${escapeHtml(g.category)} · ${escapeHtml(bagName(g.bagId))}</small></span></label>`).join('');
   openModal(id ? 'Editează template' : 'Adaugă template', `
     <div class="form-grid">
       <label>Nume<input id="tName" value="${escapeHtml(t.name)}" placeholder="Real Estate" /></label>
       <label>Notițe<textarea id="tNotes">${escapeHtml(t.notes || '')}</textarea></label>
-      <div><p class="muted" style="margin-bottom:8px;font-weight:800">Iteme incluse</p><div class="list" style="max-height:310px;overflow:auto">${state.gear.map(g => `<label class="item" style="grid-template-columns:auto 1fr;display:grid"><input type="checkbox" class="tGear" value="${g.id}" ${t.itemIds.includes(g.id)?'checked':''} style="width:24px" /><span><b>${escapeHtml(g.name)}</b><br><small class="muted">${escapeHtml(g.category)} · ${escapeHtml(bagName(g.bagId))}</small></span></label>`).join('')}</div></div>
+      <div><p class="muted template-label">Case-uri complete</p><p class="template-help">Bifezi case-ul o singură dată. Template-ul va lua automat tot conținutul lui actual.</p><div class="list">${caseBags.map(b=>`<label class="item template-choice"><input type="checkbox" class="tBag" value="${b.id}" ${(t.bagIds||[]).includes(b.id)?'checked':''}/><img src="${bagIcon(b.type)}"/><span><b>${escapeHtml(b.name)}</b><br><small class="muted">${state.gear.filter(g=>g.bagId===b.id).length} iteme · case complet</small></span></label>`).join('')}</div></div>
+      <div><div class="template-section-head"><p class="muted template-label">Lumini și stative</p><button type="button" class="ghost tiny" onclick="toggleTemplateGroup('production')">Selectează toate</button></div><p class="template-help">Le alegi individual, indiferent dacă sunt în Mașină, Portbagaj sau fără bagaj.</p><div class="list template-scroll" data-template-group="production">${choices(production)||'<p class="empty">Nu există lumini sau stative.</p>'}</div></div>
+      <div><p class="muted template-label">Alte echipamente separate</p><div class="list template-scroll" data-template-group="other">${choices(otherLoose)||'<p class="empty">Nu există alte echipamente separate.</p>'}</div></div>
       <button class="primary" type="button" onclick="saveTemplate('${id}')">Salvează</button>
     </div>`);
 }
+function toggleTemplateGroup(group){const boxes=[...document.querySelectorAll(`[data-template-group="${group}"] input[type="checkbox"]`)],check=!boxes.every(b=>b.checked);boxes.forEach(b=>b.checked=check)}
 function saveTemplate(id='') {
-  const payload = { name: tName.value.trim(), notes: tNotes.value.trim(), itemIds: [...document.querySelectorAll('.tGear:checked')].map(x => x.value) };
+  const name=document.getElementById('tName').value.trim(),notes=document.getElementById('tNotes').value.trim();
+  const bagIds=[...document.querySelectorAll('.tBag:checked')].map(x=>x.value),extraItemIds=[...document.querySelectorAll('.tGear:checked')].map(x=>x.value);
+  const itemIds=[...new Set([...bagIds.flatMap(bid=>state.gear.filter(g=>g.bagId===bid).map(g=>g.id)),...extraItemIds])];
+  const payload = { name,notes,bagIds,extraItemIds,itemIds };
   if (!payload.name) return alert('Pune un nume.');
   if (id) Object.assign(byId(state.templates, id), payload); else state.templates.push({ id: uid(), ...payload });
   save(); modal.close(); render();
@@ -384,14 +403,14 @@ function openNewSession() {
       <label>Nume sesiune<input id="sName" value="Filmare ${today()}" /></label>
       <label>Data<input id="sDate" type="date" value="${today()}" /></label>
       <p class="muted" style="font-weight:800">Alege template</p>
-      <div class="list">${state.templates.map(t => `<button type="button" class="secondary template-pick" onclick="createSession('${t.id}', sName.value, sDate.value)"><b>${escapeHtml(t.name)}</b><br><small class="muted">${t.itemIds.length} iteme · ⚡ ${t.itemIds.filter(id=>byId(state.gear,id)?.needsCharge).length} de încărcat · ${escapeHtml(t.notes || '')}</small></button>`).join('')}</div>
+      <div class="list">${state.templates.map(t => {const ids=templateItemIds(t);return `<button type="button" class="secondary template-pick" onclick="createSession('${t.id}', document.getElementById('sName').value, document.getElementById('sDate').value)"><b>${escapeHtml(t.name)}</b><br><small class="muted">${ids.length} iteme · ⚡ ${ids.filter(id=>byId(state.gear,id)?.needsCharge).length} de încărcat · ${escapeHtml(t.notes || '')}</small></button>`}).join('')}</div>
     </div>`);
 }
 function createSession(templateId, name='', date='') {
   const t = byId(state.templates, templateId);
   if (!t) return;
-  const makeItems = () => t.itemIds.map(gearId => ({ id: uid(), gearId, checked: false }));
-  const chargeItems=t.itemIds.filter(id=>byId(state.gear,id)?.needsCharge).map(gearId=>({id:uid(),gearId,checked:false}));
+  const resolved=templateItemIds(t),makeItems = () => resolved.map(gearId => ({ id: uid(), gearId, checked: false }));
+  const chargeItems=resolved.filter(id=>byId(state.gear,id)?.needsCharge).map(gearId=>({id:uid(),gearId,checked:false}));
   const session = { id: uid(), name: name?.trim() || t.name + ' · ' + today(), templateId, date: date || today(), mode: chargeItems.length?'charge':'pack', chargeItems, packItems: makeItems(), returnItems: makeItems(), completed: false };
   state.sessions.push(session);
   save(); modal.close(); activeTab = 'sessions'; currentSessionId = session.id; render();
@@ -420,7 +439,7 @@ importFile.addEventListener('change', async e => {
   try {
     const data = JSON.parse(await file.text());
     if (!data.gear || !data.bags || !data.templates) throw new Error('Format invalid');
-    if (confirm('Importul va înlocui datele actuale. Continui?')) { state = data; save(); render(); }
+    if (confirm('Importul va înlocui datele actuale. Continui?')) { state = data; migrateState(); save(); render(); }
   } catch (err) { alert('Backup invalid sau corupt.'); }
   importFile.value = '';
 });
