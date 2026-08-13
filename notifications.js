@@ -1,6 +1,11 @@
 const ONESIGNAL_APP_ID = '235c0b1a-654b-4ba4-b23b-dca951f21105';
 let oneSignalClient = null;
 
+function pushStatusLabel() {
+  if (!oneSignalClient) return 'Se verifică…';
+  return oneSignalClient.Notifications.permission && oneSignalClient.User.PushSubscription.optedIn ? 'Push activ' : 'Push inactiv';
+}
+
 function pushDeviceId() {
   let id = localStorage.getItem('gear-check-push-device');
   if (!id) {

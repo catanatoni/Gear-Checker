@@ -290,7 +290,7 @@ function renderSessionDetail(id) {
       <div class="progress"><div style="width:${progress(items)}%"></div></div>
       <div class="mode-tabs"><button class="${mode==='charge'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','charge')">Pregătire</button><button class="${mode==='pack'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','pack')">Spre filmare</button><button class="${mode==='return'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','return')">Plecare acasă</button></div>
     </section>
-    <div class="card flat stack" style="margin-top:12px"><div class="row"><b>Notificări planificate</b><span class="pill">Push neconectat</span></div><p class="muted">${escapeHtml(s.reminderDate||'Cu o zi înainte')} la ${escapeHtml(s.reminderTime||'09:00')}: baterii și carduri.</p>${s.clothesReminder?`<p class="muted">Haine: cu o zi înainte la ${escapeHtml(s.clothesPrepTime||'09:05')} și în ziua evenimentului la ${escapeHtml(s.clothesMorningTime||'07:00')}.</p>`:''}</div>
+    <div class="card flat stack" style="margin-top:12px"><div class="row"><b>Plan notificări</b><span class="pill">${typeof pushStatusLabel==='function'?pushStatusLabel():'Se verifică…'}</span></div><p class="muted">${escapeHtml(s.reminderDate||'Cu o zi înainte')} la ${escapeHtml(s.reminderTime||'09:00')}: baterii și carduri.</p>${s.clothesReminder?`<p class="muted">Haine: cu o zi înainte la ${escapeHtml(s.clothesPrepTime||'09:05')} și în ziua evenimentului la ${escapeHtml(s.clothesMorningTime||'07:00')}.</p>`:''}<p class="charge-note">Trimiterea automată devine activă după conectarea serviciului de programare.</p></div>
     ${missing.length ? `<div class="section-title"><h3>Lipsesc / nebifate</h3><span class="pill warn">${missing.length}</span></div><div class="list">${missing.map(i => checklistRow(s.id, i, mode, true)).join('')}</div>` : `<div class="card flat" style="margin-top:14px"><p class="empty">Totul bifat. Frumos.</p></div>`}
     <div class="section-title"><h3>Toate itemele</h3></div>
     <div class="list">${items.map(i => checklistRow(s.id, i, mode)).join('')}</div>
@@ -482,4 +482,5 @@ async function boot() {
   }
   render();
 }
-boot();
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+else queueMicrotask(boot);
