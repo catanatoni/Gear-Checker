@@ -115,13 +115,14 @@ function migrateState() {
     });
     state.settings.caseBasedTemplatesV5=true;save();
   }
+  if(!state.settings.opaqueCarCutoutsV7){state.bags.forEach(b=>{if(b.name==='Mașină')b.type='CarCutoutOpaque.png';if(b.name==='Portbagaj')b.type='CarTrunkCutoutOpaque.png'});state.settings.opaqueCarCutoutsV7=true;save()}
 }
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function byId(arr, id) { return arr.find(x => x.id === id); }
 function bagName(id) { return byId(state.bags, id)?.name || 'Fără bagaj'; }
 function templateItemIds(t){return[...new Set([...(t.bagIds||[]).flatMap(bid=>state.gear.filter(g=>g.bagId===bid).map(g=>g.id)),...(t.extraItemIds||t.itemIds||[])])].filter(id=>byId(state.gear,id))}
 function escapeHtml(str='') { return String(str).replace(/[&<>'"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s])); }
-const BAG_ICONS = ['VevorMediumStyled.png','VevorMediumStyled-Balanced.png','VevorMediumStyled-TOOFlatter.png','VevorSmallStyled.png','VevorLargeStyled.png','ManfrottoRollerStyled.png','CameraShoulderBag.png','HardcaseCompact.png','HardcaseMedium.png','HardcaseLarge.png','HardcaseLong.png','HardcaseLens.png','HardcaseBattery.png','Car-transparent.png','CarTrunk-transparent.png'];
+const BAG_ICONS = ['VevorMediumStyled.png','VevorMediumStyled-Balanced.png','VevorMediumStyled-TOOFlatter.png','VevorSmallStyled.png','VevorLargeStyled.png','ManfrottoRollerStyled.png','CameraShoulderBag.png','HardcaseCompact.png','HardcaseMedium.png','HardcaseLarge.png','HardcaseLong.png','HardcaseLens.png','HardcaseBattery.png','CarCutoutOpaque.png','CarTrunkCutoutOpaque.png'];
 const bagIcon = type => BAG_ICONS.includes(type) ? `icons/cases/${type}` : ({backpack:'icons/cases/CameraShoulderBag.png',trolley:'icons/cases/ManfrottoRollerStyled.png',audio:'icons/cases/VevorSmallStyled.png',pouch:'icons/cases/HardcaseCompact.png',case:'icons/cases/HardcaseMedium.png',car:'icons/cases/HardcaseLong.png'}[type] || 'icons/cases/HardcaseMedium.png');
 
 const view = document.getElementById('view');
@@ -370,6 +371,7 @@ function openTemplateForm(id='') {
   const caseNames=['Vevor Medium Case','Vevor Large Case','Small Audio Case'],caseBags=state.bags.filter(b=>caseNames.includes(b.name));
   const loose=state.gear.filter(g=>!caseBags.some(b=>b.id===g.bagId));
   const production=loose.filter(g=>/light|stativ|stand|nanlite|yongnuo|forza|mixpad|gvm/i.test(`${g.category} ${g.name}`)),otherLoose=loose.filter(g=>!production.includes(g));
+  const insideCases=caseBags.flatMap(b=>state.gear.filter(g=>g.bagId===b.id).map(g=>({...g,caseName:b.name})));
   const choices=items=>items.map(g => `<label class="item template-choice"><input type="checkbox" class="tGear" value="${g.id}" ${(t.extraItemIds||[]).includes(g.id)?'checked':''}/><span><b>${escapeHtml(g.name)} ${g.quantity>1?`×${g.quantity}`:''}</b><br><small class="muted">${escapeHtml(g.category)} · ${escapeHtml(bagName(g.bagId))}</small></span></label>`).join('');
   openModal(id ? 'Editează template' : 'Adaugă template', `
     <div class="form-grid">
@@ -377,6 +379,7 @@ function openTemplateForm(id='') {
       <label>Notițe<textarea id="tNotes">${escapeHtml(t.notes || '')}</textarea></label>
       <div><p class="muted template-label">Case-uri complete</p><p class="template-help">Bifezi case-ul o singură dată. Template-ul va lua automat tot conținutul lui actual.</p><div class="list">${caseBags.map(b=>`<label class="item template-choice"><input type="checkbox" class="tBag" value="${b.id}" ${(t.bagIds||[]).includes(b.id)?'checked':''}/><img src="${bagIcon(b.type)}"/><span><b>${escapeHtml(b.name)}</b><br><small class="muted">${state.gear.filter(g=>g.bagId===b.id).length} iteme · case complet</small></span></label>`).join('')}</div></div>
       <div><div class="template-section-head"><p class="muted template-label">Lumini și stative</p><button type="button" class="ghost tiny" onclick="toggleTemplateGroup('production')">Selectează toate</button></div><p class="template-help">Le alegi individual, indiferent dacă sunt în Mașină, Portbagaj sau fără bagaj.</p><div class="list template-scroll" data-template-group="production">${choices(production)||'<p class="empty">Nu există lumini sau stative.</p>'}</div></div>
+      <details class="template-details"><summary>Ia doar anumite obiecte dintr-un case</summary><p class="template-help">Folosește asta când nu iei case-ul complet. Dacă bifezi și case-ul complet, obiectele duplicate apar o singură dată.</p><div class="list template-scroll">${insideCases.map(g=>`<label class="item template-choice"><input type="checkbox" class="tGear" value="${g.id}" ${(t.extraItemIds||[]).includes(g.id)?'checked':''}/><span><b>${escapeHtml(g.name)} ${g.quantity>1?`×${g.quantity}`:''}</b><br><small class="muted">${escapeHtml(g.caseName)} · ${escapeHtml(g.category)}</small></span></label>`).join('')}</div></details>
       <div><p class="muted template-label">Alte echipamente separate</p><div class="list template-scroll" data-template-group="other">${choices(otherLoose)||'<p class="empty">Nu există alte echipamente separate.</p>'}</div></div>
       <button class="primary" type="button" onclick="saveTemplate('${id}')">Salvează</button>
     </div>`);
@@ -384,7 +387,7 @@ function openTemplateForm(id='') {
 function toggleTemplateGroup(group){const boxes=[...document.querySelectorAll(`[data-template-group="${group}"] input[type="checkbox"]`)],check=!boxes.every(b=>b.checked);boxes.forEach(b=>b.checked=check)}
 function saveTemplate(id='') {
   const name=document.getElementById('tName').value.trim(),notes=document.getElementById('tNotes').value.trim();
-  const bagIds=[...document.querySelectorAll('.tBag:checked')].map(x=>x.value),extraItemIds=[...document.querySelectorAll('.tGear:checked')].map(x=>x.value);
+  const bagIds=[...document.querySelectorAll('.tBag:checked')].map(x=>x.value),extraItemIds=[...new Set([...document.querySelectorAll('.tGear:checked')].map(x=>x.value))];
   const itemIds=[...new Set([...bagIds.flatMap(bid=>state.gear.filter(g=>g.bagId===bid).map(g=>g.id)),...extraItemIds])];
   const payload = { name,notes,bagIds,extraItemIds,itemIds };
   if (!payload.name) return alert('Pune un nume.');
