@@ -334,13 +334,16 @@ function openModal(name, html) {
 }
 
 function openGearForm(id='') {
-  const item = byId(state.gear, id) || { name:'', category:'Camera', quantity:1, bagId: state.bags[0]?.id || '', status:'available', notes:'' };
+  const item = byId(state.gear, id) || { name:'', category:'', quantity:1, bagId:'', status:'available', notes:'' };
+  const categories=[...new Set(state.gear.map(g=>g.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ro'));
+  const knownCategory=categories.includes(item.category);
   openModal(id ? 'Editează gear' : 'Adaugă gear', `
     <div class="form-grid">
       <label>Nume<input id="fName" value="${escapeHtml(item.name)}" placeholder="Sony FX3" /></label>
-      <label>Categorie<input id="fCategory" value="${escapeHtml(item.category)}" placeholder="Camera, Lens, Audio..." /></label>
+      <label>Categorie<select id="fCategory" onchange="toggleNewCategory()"><option value="">Alege categoria…</option>${categories.map(c=>`<option value="${escapeHtml(c)}" ${c===item.category?'selected':''}>${escapeHtml(c)}</option>`).join('')}<option value="__new__" ${item.category&&!knownCategory?'selected':''}>＋ Categorie nouă</option></select></label>
+      <label id="newCategoryLabel" class="${item.category&&!knownCategory?'':'hidden'}">Numele categoriei noi<input id="fNewCategory" value="${item.category&&!knownCategory?escapeHtml(item.category):''}" placeholder="Ex: Light Modifier" /></label>
       <label>Cantitate<input id="fQty" type="number" min="1" value="${item.quantity || 1}" /></label>
-      <label>Bagaj<select id="fBag">${state.bags.map(b => `<option value="${b.id}" ${b.id===item.bagId?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}</select></label>
+      <label>Bagaj<select id="fBag"><option value="" ${!item.bagId?'selected':''}>Fără bagaj · echipament separat</option>${state.bags.map(b => `<option value="${b.id}" ${b.id===item.bagId?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}</select></label>
       <label>Status<select id="fStatus">${['available','missing','service','borrowed'].map(s => `<option ${s===item.status?'selected':''}>${s}</option>`).join('')}</select></label>
       <label class="charge-check"><input id="fNeedsCharge" type="checkbox" ${item.needsCharge?'checked':''}/> Trebuie încărcat</label>
       <label>Notițe<textarea id="fNotes">${escapeHtml(item.notes || '')}</textarea></label>
@@ -348,8 +351,10 @@ function openGearForm(id='') {
       ${id ? `<button class="danger" type="button" onclick="deleteGear('${id}')">Șterge</button>` : ''}
     </div>`);
 }
+function toggleNewCategory(){newCategoryLabel.classList.toggle('hidden',fCategory.value!=='__new__');if(fCategory.value==='__new__')fNewCategory.focus()}
 function saveGear(id='') {
-  const payload = { name: fName.value.trim(), category: fCategory.value.trim() || 'Other', quantity: Math.max(1, Number(fQty.value||1)), bagId: fBag.value, status: fStatus.value, notes: fNotes.value.trim(), needsCharge:fNeedsCharge.checked };
+  const category=fCategory.value==='__new__'?fNewCategory.value.trim():fCategory.value;
+  const payload = { name: fName.value.trim(), category: category || 'Altele', quantity: Math.max(1, Number(fQty.value||1)), bagId: fBag.value, status: fStatus.value, notes: fNotes.value.trim(), needsCharge:fNeedsCharge.checked };
   if (!payload.name) return alert('Pune un nume.');
   if (id) Object.assign(byId(state.gear, id), payload); else state.gear.push({ id: uid(), ...payload });
   save(); modal.close(); render();
@@ -452,7 +457,7 @@ function toggleAll(sessionId, mode, checked) {
   const s = byId(state.sessions, sessionId); const arr = mode === 'charge' ? s.chargeItems : mode === 'return' ? s.returnItems : s.packItems;
   arr.forEach(i => i.checked = checked); save(); render();
 }
-function completeSession(id) { byId(state.sessions, id).completed = true; save(); render(); }
+function completeSession(id) { const s=byId(state.sessions,id);if(!s)return;s.completed=true;currentSessionId=null;save();activeTab='sessions';render(); }
 function deleteSession(id) { if(confirm('Ștergi sesiunea?')) { state.sessions = state.sessions.filter(s => s.id !== id); currentSessionId = null; save(); render(); } }
 
 function exportBackup() {

@@ -1,0 +1,4 @@
+Gear Checker V18
+
+V16 behavior preserved.
+Fix: "Marchează finalizat" now completes the session, returns to the sessions list, and places it under completed sessions.
