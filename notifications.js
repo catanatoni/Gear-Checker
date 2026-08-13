@@ -2,7 +2,7 @@ const ONESIGNAL_APP_ID = '235c0b1a-654b-4ba4-b23b-dca951f21105';
 let oneSignalClient = null;
 
 function pushStatusLabel() {
-  if (!oneSignalClient) return 'Se verifică…';
+  if (!oneSignalClient) return localStorage.getItem('gear-check-push-enabled') === '1' ? 'Push activ' : 'Se verifică…';
   return oneSignalClient.Notifications.permission && oneSignalClient.User.PushSubscription.optedIn ? 'Push activ' : 'Push inactiv';
 }
 
@@ -26,7 +26,7 @@ async function refreshPushStatus() {
   if (!oneSignalClient) return renderPushStatus('OneSignal se inițializează…');
   const permission = oneSignalClient.Notifications.permission;
   const optedIn = oneSignalClient.User.PushSubscription.optedIn;
-  if (permission && optedIn) renderPushStatus('Push activ pe acest iPhone.', true);
+  if (permission && optedIn) { localStorage.setItem('gear-check-push-enabled', '1'); renderPushStatus('Push activ pe acest iPhone.', true); }
   else if ('Notification' in window && Notification.permission === 'denied') renderPushStatus('Blocate în iOS. Activează-le din Settings → Notifications → Gear Check.', false, false);
   else renderPushStatus('Apasă Activează, apoi Allow.', false);
 }
@@ -36,6 +36,7 @@ async function enablePushNotifications() {
   try {
     await oneSignalClient.Notifications.requestPermission();
     await oneSignalClient.User.PushSubscription.optIn();
+    localStorage.setItem('gear-check-push-enabled', '1');
     await refreshPushStatus();
   } catch (error) {
     alert('Notificările nu au putut fi activate. Deschide aplicația din iconița de pe Home Screen.');

@@ -474,13 +474,13 @@ async function restoreAntonioBackup() {
   } catch (err) { alert('Presetul Toni nu a putut fi încărcat.'); }
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg=>reg.update()).catch(()=>{});
 async function boot() {
+  render();
   if (!hadStoredStateAtBoot) {
-    try { state = await loadAntonioBackup(); migrateState(); save(); }
+    try { state = await loadAntonioBackup(); migrateState(); save(); render(); }
     catch (err) { /* seedul intern rămâne fallback dacă fișierul nu este disponibil */ }
   }
-  render();
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
 else queueMicrotask(boot);
