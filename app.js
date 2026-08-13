@@ -296,8 +296,9 @@ function renderSessionDetail(id) {
     <div class="section-title"><h3>Toate itemele</h3></div>
     <div class="list">${items.map(i => checklistRow(s.id, i, mode)).join('')}</div>
     <div class="footer-actions"><button class="ghost" onclick="toggleAll('${s.id}','${mode}',true)">Bifează tot</button><button class="ghost" onclick="toggleAll('${s.id}','${mode}',false)">Reset</button></div>
-    <div class="footer-actions"><button class="secondary" onclick="completeSession('${s.id}')">Marchează finalizat</button><button class="danger" onclick="deleteSession('${s.id}')">Șterge sesiunea</button></div>
+    <div class="footer-actions"><button class="secondary" type="button" id="finalizeSessionBtn">Marchează finalizat</button><button class="danger" type="button" onclick="deleteSession('${s.id}')">Șterge sesiunea</button></div>
   `;
+  document.getElementById('finalizeSessionBtn')?.addEventListener('click', () => completeSession(s.id));
 }
 
 function checklistRow(sessionId, ci, mode, compact=false) {
@@ -457,7 +458,16 @@ function toggleAll(sessionId, mode, checked) {
   const s = byId(state.sessions, sessionId); const arr = mode === 'charge' ? s.chargeItems : mode === 'return' ? s.returnItems : s.packItems;
   arr.forEach(i => i.checked = checked); save(); render();
 }
-function completeSession(id) { const s=byId(state.sessions,id);if(!s)return;s.completed=true;currentSessionId=null;save();activeTab='sessions';render(); }
+function completeSession(id) {
+  const session = byId(state.sessions, id);
+  if (!session) return alert('Sesiunea nu a fost găsită.');
+  session.completed = true;
+  session.completedAt = new Date().toISOString();
+  currentSessionId = null;
+  activeTab = 'sessions';
+  save();
+  render();
+}
 function deleteSession(id) { if(confirm('Ștergi sesiunea?')) { state.sessions = state.sessions.filter(s => s.id !== id); currentSessionId = null; save(); render(); } }
 
 function exportBackup() {

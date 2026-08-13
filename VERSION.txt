@@ -1,4 +1,5 @@
-Gear Checker V18
+Gear Checker V18 FIX 2
 
 V16 behavior preserved.
-Fix: "Marchează finalizat" now completes the session, returns to the sessions list, and places it under completed sessions.
+Fix: "Marchează finalizat" uses a direct click handler, completes the session, returns to the sessions list, and places it under completed sessions.
+Includes category dropdown and "Fără bagaj · echipament separat" in the gear form.
