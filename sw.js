@@ -1,5 +1,5 @@
-const CACHE = 'gear-check-v1-recovered-icons-2';
-const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/cases/VevorMediumStyled.png', './icons/cases/VevorSmallStyled.png', './icons/cases/VevorLargeStyled.png', './icons/cases/ManfrottoRollerStyled.png', './icons/cases/CameraShoulderBag.png', './icons/cases/HardcaseCompact.png', './icons/cases/HardcaseMedium.png', './icons/cases/HardcaseLarge.png', './icons/cases/HardcaseLong.png', './icons/cases/HardcaseLens.png', './icons/cases/HardcaseBattery.png'];
+const CACHE = 'gear-check-v1-inventory-v3';
+const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/cases/VevorMediumStyled.png', './icons/cases/VevorMediumStyled-Balanced.png', './icons/cases/VevorSmallStyled.png', './icons/cases/VevorLargeStyled.png', './icons/cases/ManfrottoRollerStyled.png', './icons/cases/CameraShoulderBag.png', './icons/cases/HardcaseCompact.png', './icons/cases/HardcaseMedium.png', './icons/cases/HardcaseLarge.png', './icons/cases/HardcaseLong.png', './icons/cases/HardcaseLens.png', './icons/cases/HardcaseBattery.png', './icons/cases/Car.png', './icons/cases/CarTrunk.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();

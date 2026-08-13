@@ -70,12 +70,43 @@ function migrateState() {
     for(const [name,type,notes] of wanted) if(!state.bags.some(b=>b.name===name)) state.bags.push({id:uid(),name,type,notes});
     state.settings.finalCaseIconsAdded=true; save();
   }
+  if (!state.settings.antonioInventoryV3) {
+    const specs=[
+      ['Vevor Medium Case','VevorMediumStyled-Balanced.png','Rig principal, camere, obiective și power'],
+      ['Vevor Large Case','VevorLargeStyled.png','Gimbal, lumini și efecte'],
+      ['Small Audio Case','VevorSmallStyled.png','Recorder, microfoane și consumabile audio'],
+      ['Mașină','Car.png','Transport gear'],['Portbagaj','CarTrunk.png','Echipament transportat separat']
+    ];
+    const oldBags=state.bags||[], bags=specs.map(([name,type,notes])=>{const old=oldBags.find(b=>b.name===name);return{id:old?.id||uid(),name,type,notes}});
+    const bid=name=>bags.find(b=>b.name===name).id;
+    const rows=[
+      ['Sony FX3','Camera',1,'Vevor Medium Case',0],['Sony A7S III','Camera',1,'Vevor Medium Case',0],
+      ['Laowa 10mm','Obiective',1,'Vevor Medium Case',0],['Sony Zeiss 50mm f/1.4','Obiective',1,'Vevor Medium Case',0],['Sigma 85mm Art','Obiective',1,'Vevor Medium Case',0],['Sony 24-70mm GM II','Obiective',1,'Vevor Medium Case',0],['Tamron 35-150mm','Obiective',1,'Vevor Medium Case',0],
+      ['SmallRig VB99 Pro V-Mount','Power',2,'Vevor Medium Case',1],['Sony NP-FZ100 batteries','Power',6,'Vevor Medium Case',1],['Sony battery chargers','Power',2,'Vevor Medium Case',0],['External battery / power bank','Power',1,'Vevor Medium Case',1],['Nitecore blower','Accesorii',1,'Vevor Medium Case',1],['Cabluri rig / cameră','Cabluri',1,'Vevor Medium Case',0],
+      ['SmallRig articulating arm','Rig',1,'Vevor Medium Case',0],['SmallRig top handle','Rig',1,'Vevor Medium Case',0],['SmallRig side handles','Rig',2,'Vevor Medium Case',0],['DJI RS4 Pro','Gimbal',1,'Vevor Medium Case',1],['Atomos Ninja V','Monitor',1,'Vevor Medium Case',0],['NP-F batteries','Power',2,'Vevor Medium Case',1],
+      ['DJI RS3','Gimbal',1,'Vevor Large Case',1],['SmallRig rechargeable flashlight + spotlight attachment','Light',1,'Vevor Large Case',1],['Ulanzi smoke machine','FX',1,'Vevor Large Case',1],['Tamron 17-28mm','Obiective',1,'Vevor Large Case',0],['SmallRig RC 60B lights','Light',2,'Vevor Large Case',1],['SmallRig RC 60B light attachments','Light modifiers',1,'Vevor Large Case',0],
+      ['Zoom H5 recorder','Audio',1,'Small Audio Case',1],['Audio-Technica microphone','Audio',1,'Small Audio Case',0],['Zoom H2 lavalier','Audio',1,'Small Audio Case',1],['PicoGear PicoMic 2','Audio',1,'Small Audio Case',1],['AA batteries','Baterii',1,'Small Audio Case',0],['AAA batteries','Baterii',1,'Small Audio Case',0],['Audio cables','Cabluri',1,'Small Audio Case',0],
+      ['Nanlite PavoTube 15X','Light',2,'Portbagaj',1],['Yongnuo IV lamps','Light',2,'Portbagaj',0],['MixPad 150','Light',1,'Portbagaj',0],['Nanlite Forza 300','Light',1,'Portbagaj',0]
+    ];
+    const oldGear=state.gear||[]; state.bags=bags; state.gear=rows.map(([name,category,quantity,bag,charge])=>{const old=oldGear.find(g=>g.name===name);return{id:old?.id||uid(),name,category,quantity,bagId:bid(bag),status:old?.status||'available',notes:old?.notes||'',needsCharge:!!charge,charged:old?.charged||false}});
+    const ids=names=>state.gear.filter(g=>names.some(n=>g.name.includes(n))).map(g=>g.id), core=['Sony FX3','24-70mm','NP-FZ100','Cabluri rig'];
+    state.templates=[
+      {id:uid(),name:'Real Estate',notes:'Wide, gimbal, setup rapid',itemIds:ids([...core,'Laowa 10mm','DJI RS4 Pro','Tamron 17-28mm'])},
+      {id:uid(),name:'Corporate',notes:'Interviu + b-roll + audio',itemIds:ids([...core,'Sony A7S III','50mm','Zoom H5','Audio-Technica','PicoGear','RC 60B'])},
+      {id:uid(),name:'Restaurant',notes:'Food, vibe și detalii',itemIds:ids([...core,'Sigma 85mm','DJI RS4 Pro','RC 60B','smoke machine'])},
+      {id:uid(),name:'Rapid Basket',notes:'Setup mobil pentru highlights',itemIds:ids([...core,'Tamron 35-150mm','Atomos Ninja V','NP-F batteries','VB99'])},
+      {id:uid(),name:'Product Video',notes:'Lumini și control cinematic',itemIds:ids([...core,'50mm','Sigma 85mm','RC 60B','PavoTube','MixPad','Forza','smoke machine'])},
+      {id:uid(),name:'Wedding / Botez',notes:'Redundanță, audio și power',itemIds:ids([...core,'Sony A7S III','Tamron 35-150mm','DJI RS4 Pro','PicoGear','Zoom H5','VB99','power bank'])},
+      {id:uid(),name:'Tot gear-ul',notes:'Inventarul complet actualizat',itemIds:state.gear.map(g=>g.id)}
+    ];
+    state.settings.antonioInventoryV3=true; save();
+  }
 }
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function byId(arr, id) { return arr.find(x => x.id === id); }
 function bagName(id) { return byId(state.bags, id)?.name || 'Fără bagaj'; }
 function escapeHtml(str='') { return String(str).replace(/[&<>'"]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[s])); }
-const BAG_ICONS = ['VevorMediumStyled.png','VevorMediumStyled-Balanced.png','VevorMediumStyled-TOOFlatter.png','VevorSmallStyled.png','VevorLargeStyled.png','ManfrottoRollerStyled.png','CameraShoulderBag.png','HardcaseCompact.png','HardcaseMedium.png','HardcaseLarge.png','HardcaseLong.png','HardcaseLens.png','HardcaseBattery.png'];
+const BAG_ICONS = ['VevorMediumStyled.png','VevorMediumStyled-Balanced.png','VevorMediumStyled-TOOFlatter.png','VevorSmallStyled.png','VevorLargeStyled.png','ManfrottoRollerStyled.png','CameraShoulderBag.png','HardcaseCompact.png','HardcaseMedium.png','HardcaseLarge.png','HardcaseLong.png','HardcaseLens.png','HardcaseBattery.png','Car.png','CarTrunk.png'];
 const bagIcon = type => BAG_ICONS.includes(type) ? `icons/cases/${type}` : ({backpack:'icons/cases/CameraShoulderBag.png',trolley:'icons/cases/ManfrottoRollerStyled.png',audio:'icons/cases/VevorSmallStyled.png',pouch:'icons/cases/HardcaseCompact.png',case:'icons/cases/HardcaseMedium.png',car:'icons/cases/HardcaseLong.png'}[type] || 'icons/cases/HardcaseMedium.png');
 
 const view = document.getElementById('view');
@@ -160,9 +191,10 @@ function gearItemRow(item) {
       <div class="item-title">${escapeHtml(item.name)} ${item.quantity > 1 ? `×${item.quantity}` : ''}</div>
       <div class="item-sub">${escapeHtml(bagName(item.bagId))} · ${escapeHtml(item.notes || 'fără notițe')}</div>
     </div>
-    <span class="pill ${statusClass}">${escapeHtml(item.status)}</span>
+    ${item.needsCharge?`<button class="charge-toggle ${item.charged?'done':''}" onclick="event.stopPropagation();toggleCharged('${item.id}')">${item.charged?'⚡ Încărcat':'○ De încărcat'}</button>`:`<span class="pill ${statusClass}">${escapeHtml(item.status)}</span>`}
   </div>`;
 }
+function toggleCharged(id){const item=byId(state.gear,id);item.charged=!item.charged;save();render()}
 
 function renderBags() {
   title.textContent = 'Bagaje';
@@ -268,13 +300,14 @@ function openGearForm(id='') {
       <label>Cantitate<input id="fQty" type="number" min="1" value="${item.quantity || 1}" /></label>
       <label>Bagaj<select id="fBag">${state.bags.map(b => `<option value="${b.id}" ${b.id===item.bagId?'selected':''}>${escapeHtml(b.name)}</option>`).join('')}</select></label>
       <label>Status<select id="fStatus">${['available','missing','service','borrowed'].map(s => `<option ${s===item.status?'selected':''}>${s}</option>`).join('')}</select></label>
+      <label class="charge-check"><input id="fNeedsCharge" type="checkbox" ${item.needsCharge?'checked':''}/> Trebuie încărcat</label>
       <label>Notițe<textarea id="fNotes">${escapeHtml(item.notes || '')}</textarea></label>
       <button class="primary" type="button" onclick="saveGear('${id}')">Salvează</button>
       ${id ? `<button class="danger" type="button" onclick="deleteGear('${id}')">Șterge</button>` : ''}
     </div>`);
 }
 function saveGear(id='') {
-  const payload = { name: fName.value.trim(), category: fCategory.value.trim() || 'Other', quantity: Math.max(1, Number(fQty.value||1)), bagId: fBag.value, status: fStatus.value, notes: fNotes.value.trim() };
+  const payload = { name: fName.value.trim(), category: fCategory.value.trim() || 'Other', quantity: Math.max(1, Number(fQty.value||1)), bagId: fBag.value, status: fStatus.value, notes: fNotes.value.trim(), needsCharge:fNeedsCharge.checked };
   if (!payload.name) return alert('Pune un nume.');
   if (id) Object.assign(byId(state.gear, id), payload); else state.gear.push({ id: uid(), ...payload });
   save(); modal.close(); render();
