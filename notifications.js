@@ -19,7 +19,29 @@ function renderPushStatus(message, enabled = false, canEnable = true) {
   const card = document.getElementById('pushCard');
   if (!card) return;
   card.classList.toggle('ready', enabled);
-  card.innerHTML = `<div><h3>Notificări pe iPhone</h3><p class="muted">${escapeHtml(message)}</p></div>${canEnable ? `<button class="${enabled ? 'primary' : 'secondary'}" onclick="enablePushNotifications()">${enabled ? 'Active ✓' : 'Activează'}</button>` : ''}`;
+  const configured=Boolean(localStorage.getItem('gear-check-notify-worker'));
+  card.innerHTML = `<div><h3>Notificări pe iPhone</h3><p class="muted">${escapeHtml(message)} ${configured?'Automatizare configurată.':'Automatizarea nu este configurată.'}</p></div><div class="stack">${canEnable ? `<button class="${enabled ? 'primary' : 'secondary'}" onclick="enablePushNotifications()">${enabled ? 'Active ✓' : 'Activează'}</button>` : ''}<button class="ghost tiny" onclick="configureNotificationService()">Configurează</button></div>`;
+}
+
+function configureNotificationService() {
+  const current=localStorage.getItem('gear-check-notify-worker')||'';
+  const url=prompt('URL-ul Cloudflare Worker pentru notificări:',current);
+  if(!url)return;
+  const token=prompt('Tokenul de programare ales în Cloudflare:');
+  if(!token)return;
+  localStorage.setItem('gear-check-notify-worker',url.replace(/\/$/,''));
+  localStorage.setItem('gear-check-notify-token',token);
+  alert('Automatizarea a fost configurată. Sesiunile noi vor programa notificările.');
+  refreshPushStatus();
+}
+
+function localMoment(date,time,days=0){const d=new Date(`${date}T${time}:00`);d.setDate(d.getDate()+days);return d.toISOString()}
+async function scheduleSessionNotifications(session){
+  const url=localStorage.getItem('gear-check-notify-worker'),token=localStorage.getItem('gear-check-notify-token');
+  if(!url||!token){session.notificationScheduleStatus='not_configured';save();return}
+  const notifications=[{kind:'gear',sendAt:localMoment(session.date,session.reminderTime||'09:00',-1)}];
+  if(session.clothesReminder){notifications.push({kind:'clothes_day_before',sendAt:localMoment(session.date,session.clothesPrepTime||'09:05',-1)},{kind:'clothes_morning',sendAt:localMoment(session.date,session.clothesMorningTime||'07:00',0)})}
+  try{const response=await fetch(`${url}/schedule`,{method:'POST',headers:{'Content-Type':'application/json','X-Gear-Token':token},body:JSON.stringify({sessionId:session.id,name:session.name,date:session.date,shootType:session.shootType,notifications})});if(!response.ok)throw new Error('schedule');session.notificationScheduleStatus='programmed'}catch(e){session.notificationScheduleStatus='error'}save();if(currentSessionId===session.id)render()
 }
 
 async function refreshPushStatus() {

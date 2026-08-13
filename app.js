@@ -228,13 +228,13 @@ function renderBags() {
     <div class="grid" style="margin-top:12px">${state.bags.map(b => {
       const count = state.gear.filter(g => g.bagId === b.id).length;
       return `<div class="card stack bag-card"><img class="bag-visual" src="${bagIcon(b.type)}" alt="" />
-        <div class="row"><div><h2>${escapeHtml(b.name)}</h2><p class="muted">${escapeHtml(b.notes || b.type || '')}</p></div><span class="pill accent">${count} iteme</span></div>
+        <div class="row bag-heading"><div><h2>${escapeHtml(b.name)}</h2><p class="muted">${escapeHtml(b.notes || b.type || '')}</p></div><span class="pill accent item-count">${count}<small>${count===1?'item':'iteme'}</small></span></div>
         <div class="list">${state.gear.filter(g => g.bagId === b.id).map(g => `<div class="item"><div class="item-left"><div class="item-title">${escapeHtml(g.name)}</div><div class="item-sub">${escapeHtml(g.category)}</div></div><button class="unbag" onclick="removeFromBag('${g.id}')">Scoate</button></div>`).join('') || '<p class="empty">Gol momentan.</p>'}</div>
         <div class="footer-actions"><button class="ghost" onclick="openBagForm('${b.id}')">Editează</button><button class="danger" onclick="deleteBag('${b.id}')">Șterge</button></div>
       </div>`;
     }).join('') || empty('Nu ai bagaje definite.')}</div>`;
 }
-function removeFromBag(id){const g=byId(state.gear,id);if(g){g.bagId='';save();render()}}
+function removeFromBag(id){const g=byId(state.gear,id);if(g&&confirm(`Scoți „${g.name}” din ${bagName(g.bagId)}? Echipamentul va rămâne în Gear, fără bagaj.`)){g.bagId='';save();render()}}
 
 function renderTemplates() {
   title.textContent = 'Templates';
@@ -290,7 +290,7 @@ function renderSessionDetail(id) {
       <div class="progress"><div style="width:${progress(items)}%"></div></div>
       <div class="mode-tabs"><button class="${mode==='charge'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','charge')">Pregătire</button><button class="${mode==='pack'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','pack')">Spre filmare</button><button class="${mode==='return'?'primary':'secondary'}" onclick="setSessionMode('${s.id}','return')">Plecare acasă</button></div>
     </section>
-    <div class="card flat stack" style="margin-top:12px"><div class="row"><b>Plan notificări</b><span class="pill">${typeof pushStatusLabel==='function'?pushStatusLabel():'Se verifică…'}</span></div><p class="muted">${escapeHtml(s.reminderDate||'Cu o zi înainte')} la ${escapeHtml(s.reminderTime||'09:00')}: baterii și carduri.</p>${s.clothesReminder?`<p class="muted">Haine: cu o zi înainte la ${escapeHtml(s.clothesPrepTime||'09:05')} și în ziua evenimentului la ${escapeHtml(s.clothesMorningTime||'07:00')}.</p>`:''}<p class="charge-note">Trimiterea automată devine activă după conectarea serviciului de programare.</p></div>
+    <div class="card flat stack" style="margin-top:12px"><div class="row"><b>Plan notificări</b><span class="pill ${s.notificationScheduleStatus==='programmed'?'ok':''}">${s.notificationScheduleStatus==='programmed'?'Programate ✓':(typeof pushStatusLabel==='function'?pushStatusLabel():'Se verifică…')}</span></div><p class="muted">${escapeHtml(s.reminderDate||'Cu o zi înainte')} la ${escapeHtml(s.reminderTime||'09:00')}: baterii și carduri.</p>${s.clothesReminder?`<p class="muted">Haine: cu o zi înainte la ${escapeHtml(s.clothesPrepTime||'09:05')} și în ziua evenimentului la ${escapeHtml(s.clothesMorningTime||'07:00')}.</p>`:''}${s.notificationScheduleStatus==='error'?'<p class="charge-note">Programarea a eșuat. Verifică serviciul de notificări.</p>':''}${s.notificationScheduleStatus!=='programmed'?`<button class="secondary tiny" onclick="scheduleSessionNotifications(byId(state.sessions,'${s.id}'))">Programează notificările</button>`:''}</div>
     ${missing.length ? `<div class="section-title"><h3>Lipsesc / nebifate</h3><span class="pill warn">${missing.length}</span></div><div class="list">${missing.map(i => checklistRow(s.id, i, mode, true)).join('')}</div>` : `<div class="card flat" style="margin-top:14px"><p class="empty">Totul bifat. Frumos.</p></div>`}
     <div class="section-title"><h3>Toate itemele</h3></div>
     <div class="list">${items.map(i => checklistRow(s.id, i, mode)).join('')}</div>
@@ -428,6 +428,7 @@ function createSession(templateId, name='', date='',shootType='Filmări generale
   const session = { id: uid(), name: name?.trim() || t.name + ' · ' + today(), templateId, date: date || today(),shootType,reminderTime,reminderDate:'Cu o zi înainte',clothesReminder,clothesPrepTime:'09:05',clothesMorningTime:'07:00', mode: chargeItems.length?'charge':'pack', chargeItems, packItems: makeItems(), returnItems: makeItems(), completed: false };
   state.sessions.push(session);
   save(); modal.close(); activeTab = 'sessions'; currentSessionId = session.id; render();
+  if(typeof scheduleSessionNotifications==='function') scheduleSessionNotifications(session);
 }
 function setSessionMode(id, mode) { byId(state.sessions, id).mode = mode; save(); render(); }
 function toggleChecklist(sessionId, itemId, mode) {
