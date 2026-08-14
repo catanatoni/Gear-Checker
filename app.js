@@ -188,7 +188,7 @@ function renderDashboard() {
       <button class="secondary" onclick="openGearForm()">Adaugă echipament</button>
       <button class="secondary" onclick="openBagForm()">Adaugă bagaj/case</button>
       <button class="secondary" onclick="openTemplateForm()">Creează template</button>
-      <button class="secondary vault-home-button" onclick="activeTab='vault';render()"><span class="vault-home-icon">▰</span><span><b>Media Vault · SSD</b><small>Vezi rapid ce proiecte sunt pe fiecare drive</small></span></button>
+      <button class="secondary vault-home-button" onclick="activeTab='vault';render()"><span class="vault-home-icon">▰</span><b>Media Vault</b></button>
       <div class="footer-actions">
         <button class="ghost" onclick="exportBackup()">Export backup</button>
         <button class="ghost" onclick="importFile.click()">Import backup</button>

@@ -1,4 +1,4 @@
-CTN OS V20 — Media Vault Seeded
+CTN OS V21 — Linked Media Projects
 
 V16 behavior preserved.
 Fix: "Marchează finalizat" uses a direct click handler, completes the session, returns to the sessions list, and places it under completed sessions.
