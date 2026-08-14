@@ -1,7 +1,7 @@
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
-const CACHE = 'gear-check-v1-finalize-fix-v18-fix2';
+const CACHE = 'ctn-os-media-vault-v20-seeded';
 const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/cases/VevorMediumStyled.png', './icons/cases/VevorMediumStyled-Balanced.png', './icons/cases/VevorSmallStyled.png', './icons/cases/VevorLargeStyled.png', './icons/cases/ManfrottoRollerStyled.png', './icons/cases/CameraShoulderBag.png', './icons/cases/HardcaseCompact.png', './icons/cases/HardcaseMedium.png', './icons/cases/HardcaseLarge.png', './icons/cases/HardcaseLong.png', './icons/cases/HardcaseLens.png', './icons/cases/HardcaseBattery.png', './icons/cases/CarCutoutOpaque.png', './icons/cases/CarTrunkCutoutOpaque.png'];
-ASSETS.push('./business.js', './notifications.js', './antonio-backup-2026-08-13.json');
+ASSETS.push('./business.js', './vault-seed-v20.js', './vault.js', './notifications.js', './antonio-backup-2026-08-13.json');
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();

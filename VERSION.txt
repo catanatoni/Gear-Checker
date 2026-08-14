@@ -1,5 +1,6 @@
-Gear Checker V18 FIX 2
+CTN OS V20 — Media Vault Seeded
 
 V16 behavior preserved.
 Fix: "Marchează finalizat" uses a direct click handler, completes the session, returns to the sessions list, and places it under completed sessions.
 Includes category dropdown and "Fără bagaj · echipament separat" in the gear form.
+Adds a fully editable SSD/HDD catalog opened from Home. No real media files are copied or stored.

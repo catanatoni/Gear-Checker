@@ -66,6 +66,11 @@ function load() {
 }
 function migrateState() {
   state.bags ||= []; state.gear ||= []; state.templates ||= []; state.sessions ||= []; state.settings ||= {};
+  state.mediaVault ||= { drives: [], entries: [] };
+  state.mediaVault.drives ||= [];
+  state.mediaVault.entries ||= [];
+  state.mediaVault.entries.forEach(entry => entry.backupStatus ||= 'unknown');
+  if (typeof seedMediaVaultV20 === 'function') seedMediaVaultV20();
   if (!state.settings.finalCaseIconsAdded) {
     const wanted=[['Vevor Medium Case','VevorMediumStyled.png','Case mediu principal'],['Small Audio Case','VevorSmallStyled.png','Case compact pentru audio'],['Large Case — Activ','VevorLargeStyled.png','Case mare folosit'],['Large Case — Gol','HardcaseLarge.png','Case mare de rezervă, momentan gol']];
     for(const [name,type,notes] of wanted) if(!state.bags.some(b=>b.name===name)) state.bags.push({id:uid(),name,type,notes});
@@ -145,13 +150,14 @@ document.getElementById('quickAddBtn').addEventListener('click', () => {
   else if (activeTab === 'templates') openTemplateForm();
   else if (activeTab === 'sessions') openNewSession();
   else if (activeTab === 'business') openBusinessProjectForm();
+  else if (activeTab === 'vault') openVaultDriveForm();
   else openGearForm();
 });
 document.getElementById('closeModalBtn').addEventListener('click', () => modal.close());
 
 function render() {
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
-  const map = { dashboard: renderDashboard, inventory: renderInventory, bags: renderBags, templates: renderTemplates, sessions: renderSessions, business: renderBusiness };
+  const map = { dashboard: renderDashboard, inventory: renderInventory, bags: renderBags, templates: renderTemplates, sessions: renderSessions, business: renderBusiness, vault: renderVault };
   map[activeTab]();
 }
 
@@ -182,6 +188,7 @@ function renderDashboard() {
       <button class="secondary" onclick="openGearForm()">Adaugă echipament</button>
       <button class="secondary" onclick="openBagForm()">Adaugă bagaj/case</button>
       <button class="secondary" onclick="openTemplateForm()">Creează template</button>
+      <button class="secondary vault-home-button" onclick="activeTab='vault';render()"><span class="vault-home-icon">▰</span><span><b>Media Vault · SSD</b><small>Vezi rapid ce proiecte sunt pe fiecare drive</small></span></button>
       <div class="footer-actions">
         <button class="ghost" onclick="exportBackup()">Export backup</button>
         <button class="ghost" onclick="importFile.click()">Import backup</button>
