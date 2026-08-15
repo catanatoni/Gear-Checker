@@ -235,7 +235,7 @@ function renderBags() {
     <div class="row"><span class="pill">${state.bags.length} bagaje</span><button class="primary tiny" onclick="openBagForm()">＋ Bagaj</button></div>
     <div class="grid" style="margin-top:12px">${state.bags.map(b => {
       const count = state.gear.filter(g => g.bagId === b.id).length;
-      return `<div class="card stack bag-card"><img class="bag-visual" src="${bagIcon(b.type)}" alt="" />
+      return `<div class="card stack bag-card">${b.photo?`<img class="bag-content-photo" src="${b.photo}" alt="Aranjarea echipamentului în ${escapeHtml(b.name)}" />`:''}<img class="bag-visual" src="${bagIcon(b.type)}" alt="" />
         <div class="row bag-heading"><div><h2>${escapeHtml(b.name)}</h2><p class="muted">${escapeHtml(b.notes || b.type || '')}</p></div><span class="pill accent item-count">${count}<small>${count===1?'item':'iteme'}</small></span></div>
         <div class="list">${state.gear.filter(g => g.bagId === b.id).map(g => `<div class="item"><div class="item-left"><div class="item-title">${escapeHtml(g.name)}</div><div class="item-sub">${escapeHtml(g.category)}</div></div><button class="unbag" onclick="removeFromBag('${g.id}')">Scoate</button></div>`).join('') || '<p class="empty">Gol momentan.</p>'}</div>
         <div class="footer-actions"><button class="ghost" onclick="openBagForm('${b.id}')">Editează</button><button class="danger" onclick="deleteBag('${b.id}')">Șterge</button></div>
@@ -382,6 +382,7 @@ function openBagForm(id='') {
       <label>Nume<input id="bName" value="${escapeHtml(bag.name)}" placeholder="Rucsac cameră" /></label>
       <label>Iconiță<select id="bType">${BAG_ICONS.map(icon => `<option value="${icon}" ${bag.type===icon?'selected':''}>${icon.replace('.png','')}</option>`).join('')}</select></label>
       <label>Notițe<textarea id="bNotes">${escapeHtml(bag.notes || '')}</textarea></label>
+      ${id?`<div class="photo-editor"><p class="muted template-label">Fotografie interior</p>${bag.photo?`<img class="photo-editor-preview" src="${bag.photo}" alt="Fotografie ${escapeHtml(bag.name)}"/>`:''}<input id="bagPhotoInput" type="file" accept="image/*,.webp" hidden onchange="uploadBagPhoto('${id}',this)"><button type="button" class="secondary" onclick="bagPhotoInput.click()">${bag.photo?'Schimbă fotografia':'＋ Adaugă fotografie'}</button>${bag.photo?`<button type="button" class="danger" onclick="deleteBagPhoto('${id}')">Șterge fotografia</button>`:''}<p class="offer-hint">Se redimensionează automat și rămâne salvată local în backup.</p></div>`:'<p class="offer-hint">Salvează bagajul, apoi îl poți edita pentru a-i adăuga fotografia interiorului.</p>'}
       ${id?`<div><p class="muted" style="font-weight:800;margin-bottom:8px">Conținut</p><div class="list">${state.gear.filter(g=>g.bagId===id).map(g=>`<div class="item"><span>${escapeHtml(g.name)}</span><button type="button" class="unbag" onclick="removeFromBagModal('${g.id}','${id}')">Scoate</button></div>`).join('')||'<p class="empty">Gol momentan.</p>'}</div></div>`:''}
       <button class="primary" type="button" onclick="saveBag('${id}')">Salvează</button>
     </div>`);
@@ -393,6 +394,9 @@ function saveBag(id='') {
   if (id) Object.assign(byId(state.bags, id), payload); else state.bags.push({ id: uid(), ...payload });
   save(); modal.close(); render();
 }
+function imageFileToWebp(file,maxSize=1600,quality=.82){return new Promise((resolve,reject)=>{if(!file||!file.type.startsWith('image/'))return reject(new Error('Fișierul nu este imagine.'));const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{const img=new Image();img.onerror=reject;img.onload=()=>{const ratio=Math.min(1,maxSize/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*ratio));canvas.height=Math.max(1,Math.round(img.height*ratio));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/webp',quality))};img.src=reader.result};reader.readAsDataURL(file)})}
+async function uploadBagPhoto(id,input){const bag=byId(state.bags,id),file=input.files?.[0];if(!bag||!file)return;try{bag.photo=await imageFileToWebp(file);save();openBagForm(id)}catch(e){alert('Fotografia nu a putut fi încărcată. Încearcă JPG, PNG, HEIC sau WebP.')}}
+function deleteBagPhoto(id){const bag=byId(state.bags,id);if(bag&&confirm(`Ștergi fotografia din „${bag.name}”?`)){delete bag.photo;save();openBagForm(id)}}
 function deleteBag(id) {
   if (!confirm('Ștergi bagajul? Itemele rămân fără bagaj.')) return;
   state.bags = state.bags.filter(b => b.id !== id);

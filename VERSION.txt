@@ -1,4 +1,4 @@
-CTN OS V28 — Native Offers Library + Music Video
+CTN OS V29 — Bag & Offer Photos + 2fast Comparison
 
 V16 behavior preserved.
 Fix: "Marchează finalizat" uses a direct click handler, completes the session, returns to the sessions list, and places it under completed sessions.
@@ -6,3 +6,6 @@ Includes category dropdown and "Fără bagaj · echipament separat" in the gear 
 Adds a fully editable SSD/HDD catalog opened from Home. No real media files are copied or stored.
 Adds a native, searchable offers library with all events, private events, kindergarten shows, unique projects, retainers and 2fast_OP packages.
 Adds editable Performance, Story and Cinematic music-video offer presets. No PDF files are bundled.
+Adds one locally stored interior photo per bag, with replace and confirmed delete actions.
+Adds optional locally stored offer images, including WebP upload support.
+Adds a complete side-by-side comparison view for every 2fast_OP City and Mountain package.
