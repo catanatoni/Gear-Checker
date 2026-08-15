@@ -1,4 +1,4 @@
-CTN OS V24 — Premium Offer Picker
+CTN OS V25 — 2fast_OP + Editable Price Presets
 
 V16 behavior preserved.
 Fix: "Marchează finalizat" uses a direct click handler, completes the session, returns to the sessions list, and places it under completed sessions.
