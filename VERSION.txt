@@ -1,4 +1,4 @@
-CTN OS V26 — Clean Retainer Picker
+CTN OS V27 — Retainer Combinations + Automatic Hours
 
 V16 behavior preserved.
 Fix: "Marchează finalizat" uses a direct click handler, completes the session, returns to the sessions list, and places it under completed sessions.
