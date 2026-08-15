@@ -150,6 +150,7 @@ document.getElementById('quickAddBtn').addEventListener('click', () => {
   else if (activeTab === 'templates') openTemplateForm();
   else if (activeTab === 'sessions') openNewSession();
   else if (activeTab === 'business') openBusinessProjectForm();
+  else if (activeTab === 'shots') openShotProjectForm();
   else if (activeTab === 'vault') openVaultDriveForm();
   else openGearForm();
 });
@@ -157,7 +158,7 @@ document.getElementById('closeModalBtn').addEventListener('click', () => modal.c
 
 function render() {
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
-  const map = { dashboard: renderDashboard, inventory: renderInventory, bags: renderBags, templates: renderTemplates, sessions: renderSessions, business: renderBusiness, vault: renderVault };
+  const map = { dashboard: renderDashboard, inventory: renderInventory, bags: renderBags, templates: renderTemplates, sessions: renderSessions, shots: renderShotlists, business: renderBusiness, vault: renderVault };
   map[activeTab]();
 }
 

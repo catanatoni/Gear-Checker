@@ -49,3 +49,17 @@ function seedMediaVaultV20(){
   save();
 }
 seedMediaVaultV20();
+
+function migrateDisk1ClipsV22(){
+  state.settings ||= {};
+  if(state.settings.disk1ClipsV22)return;
+  const drive=state.mediaVault?.drives?.find(d=>d.name==='DISK 1');
+  if(drive){
+    state.mediaVault.entries=state.mediaVault.entries.filter(e=>!(e.driveId===drive.id&&e.name==='CLIPS'));
+    ['DUMAN','CRĂCIUN CU FAMILIA'].forEach(name=>{
+      if(!state.mediaVault.entries.some(e=>e.driveId===drive.id&&e.name===name))state.mediaVault.entries.push({id:uid(),driveId:drive.id,name,client:'',date:'',types:'Folder',size:'',path:`CLIPS/${name}`,notes:'Importat din folderul CLIPS de pe DISK 1',backupStatus:'unknown'});
+    });
+  }
+  state.settings.disk1ClipsV22=true;save();
+}
+migrateDisk1ClipsV22();
