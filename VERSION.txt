@@ -1,4 +1,4 @@
-CTN OS V23 — Audited Offers + Shotlist
+CTN OS V24 — Premium Offer Picker
 
 V16 behavior preserved.
 Fix: "Marchează finalizat" uses a direct click handler, completes the session, returns to the sessions list, and places it under completed sessions.
